@@ -1,102 +1,302 @@
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+
 import stressImg from "../../assets/concern-stress.jpg";
 import sleepImg from "../../assets/concern-sleep.jpg";
 import focusImg from "../../assets/concern-focus.jpg";
 import immuneImg from "../../assets/concern-immune.jpg";
 
+const FONT_TITLE = '"Manrope","Inter","Helvetica Now",sans-serif';
+const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
+const GOLD = "#c9a84c";
+
 const concerns = [
-  { title: "Estrés crónico", img: stressImg },
-  { title: "Sueño irregular", img: sleepImg },
-  { title: "Fatiga mental", img: focusImg },
-  { title: "Sistema inmune débil", img: immuneImg },
+  { title: "Estrés crónico", img: stressImg, stat: "68%", statLabel: "de adultos lo reportan" },
+  { title: "Sueño irregular", img: sleepImg, stat: "1/3", statLabel: "no duerme bien" },
+  { title: "Fatiga mental", img: focusImg, stat: "4x", statLabel: "más común post-pandemia" },
+  { title: "Sistema inmune débil", img: immuneImg, stat: "↓40%", statLabel: "actividad NK sin adaptógenos" },
+];
+
+const comparison = [
+  { label: "Materia prima", other: "Micelio industrial", sumo: "Cuerpo fructífero completo" },
+  { label: "Extracción", other: "Genérica · baja concentración", sumo: "Extracción lenta en agua" },
+  { label: "Transparencia", other: "Etiquetas opacas", sumo: "Trazabilidad total" },
+  { label: "Concentración", other: "Sin especificar", sumo: "Extracto 30:1 · 500mg" },
+  { label: "Efecto", other: "Estimulante", sumo: "Adaptógeno real" },
 ];
 
 export function BenefitsScienceSection2() {
+  const ref1 = useRef(null);
+  const ref2 = useRef(null);
+  const ref3 = useRef(null);
+  const inView1 = useInView(ref1, { once: true, margin: "-80px" });
+  const inView2 = useInView(ref2, { once: true, margin: "-80px" });
+  const inView3 = useInView(ref3, { once: true, margin: "-80px" });
+
   return (
-    <section className="bg-[#F5F5F3] py-24">
-      <div className="max-w-7xl mx-auto px-6 space-y-24">
+    <section style={{ backgroundColor: "#F5F5F3", overflow: "hidden" }}>
 
-        {/* 1. SUMO BENEFICIOS */}
-        <div className="max-w-2xl">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-6">
-            SUMO BENEFICIOS
-          </h2>
+      {/* ── BLOQUE 1: HERO COPY ── */}
+      <div ref={ref1} style={{ maxWidth: "1200px", margin: "0 auto", padding: "8rem 2rem 6rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6rem", alignItems: "end" }}
+          className="benefits-hero-grid">
 
-          <div className="space-y-4 text-sm text-black/70 leading-relaxed">
-            <p>No es un estimulante. No fuerza al cuerpo.</p>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={inView1 ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7 }}
+          >
+            <span style={{
+              fontFamily: FONT,
+              fontSize: "0.6rem",
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: GOLD,
+              display: "block",
+              marginBottom: "1.5rem",
+            }}>
+              Por qué funciona
+            </span>
+            <h2 style={{
+              fontFamily: FONT_TITLE,
+              fontWeight: 900,
+              fontSize: "clamp(2.5rem, 5vw, 4rem)",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.0,
+              color: "#0e0e0e",
+              margin: 0,
+            }}>
+              No es un<br />
+              estimulante.<br />
+              <span style={{ color: "rgba(0,0,0,0.18)" }}>Es un aliado.</span>
+            </h2>
+          </motion.div>
 
-            <p>
-              Apoya la respuesta natural al estrés,  
-              el equilibrio del sistema inmune  
-              y la claridad mental sostenida.
-            </p>
-
-            <p>
-              Resultados acumulativos.  
-              Sin picos. Sin dependencia.
-            </p>
-          </div>
-        </div>
-
-        {/* 2. PREOCUPACIONES COMUNES */}
-        <div>
-          <h3 className="text-xl font-medium mb-2">
-            Preocupaciones comunes
-          </h3>
-          <p className="text-sm text-black/60 max-w-xl mb-8">
-            Estados frecuentes asociados al estrés crónico y al desequilibrio del sistema nervioso.
-          </p>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {concerns.map((item) => (
-              <div key={item.title} className="space-y-3">
-                <img
-                  src={item.img}
-                  alt={item.title}
-                  className="w-full aspect-square object-cover transition-opacity duration-300 hover:opacity-90"
-                />
-                <p className="text-sm text-black/80">
-                  {item.title}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 3. COMPARACIÓN HONESTA */}
-        <div>
-          <h3 className="text-xl font-medium mb-2">
-            Comparación honesta
-          </h3>
-          <p className="text-sm text-black/60 mb-8">
-            Diferencias reales entre formulaciones.
-          </p>
-
-          <div className="border border-black/10 divide-y divide-black/10">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={inView1 ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7, delay: 0.15 }}
+            style={{ paddingBottom: "0.5rem" }}
+          >
             {[
-              ["Materia prima", "Micelio industrial", "Cuerpo fructífero completo"],
-              ["Extracción", "Genérica / baja concentración", "Extracción lenta en agua"],
-              ["Transparencia", "Etiquetas opacas", "Trazabilidad total"],
-              ["Efecto", "Estimulante", "Adaptógeno real"],
-            ].map(([label, other, sumo]) => (
-              <div
-                key={label}
-                className="grid grid-cols-3 text-sm"
+              { num: "01", text: "Apoya la respuesta natural al estrés sin forzar al cuerpo." },
+              { num: "02", text: "Equilibra el sistema inmune de forma progresiva y sostenida." },
+              { num: "03", text: "Resultados acumulativos. Sin picos. Sin dependencia." },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: 20 }}
+                animate={inView1 ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
+                style={{
+                  display: "flex",
+                  gap: "1.5rem",
+                  alignItems: "flex-start",
+                  padding: "1.5rem 0",
+                  borderBottom: "1px solid rgba(0,0,0,0.07)",
+                }}
               >
-                <div className="p-4 text-black/60">
-                  {label}
+                <span style={{
+                  fontFamily: FONT,
+                  fontSize: "0.6rem",
+                  color: GOLD,
+                  letterSpacing: "0.1em",
+                  paddingTop: "0.15rem",
+                  flexShrink: 0,
+                }}>
+                  {item.num}
+                </span>
+                <p style={{
+                  fontFamily: FONT,
+                  fontSize: "0.85rem",
+                  lineHeight: 1.75,
+                  color: "rgba(0,0,0,0.55)",
+                  margin: 0,
+                }}>
+                  {item.text}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ── BLOQUE 2: CONCERNS — fotos con overlay ── */}
+      <div ref={ref2} style={{ backgroundColor: "#0e0e0e", padding: "6rem 0" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" }}>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={inView2 ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "3rem" }}
+            className="concerns-header"
+          >
+            <div>
+              <span style={{ fontFamily: FONT, fontSize: "0.6rem", letterSpacing: "0.28em", textTransform: "uppercase", color: GOLD, display: "block", marginBottom: "0.75rem" }}>
+                Reconócelo
+              </span>
+              <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 900, fontSize: "clamp(1.8rem, 3vw, 2.5rem)", letterSpacing: "-0.04em", color: "#ffffff", margin: 0, lineHeight: 1.05 }}>
+                ¿Te suena<br />alguno de estos?
+              </h3>
+            </div>
+            <p style={{ fontFamily: FONT, fontSize: "0.75rem", color: "rgba(255,255,255,0.3)", maxWidth: "280px", lineHeight: 1.7, textAlign: "right", margin: 0 }}
+              className="concerns-sub">
+              Estados frecuentes asociados al estrés crónico y al desequilibrio del sistema nervioso.
+            </p>
+          </motion.div>
+
+          {/* Grid fotos */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", backgroundColor: "rgba(255,255,255,0.04)" }}
+            className="concerns-grid">
+            {concerns.map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={inView2 ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                style={{ position: "relative", overflow: "hidden", backgroundColor: "#0e0e0e", cursor: "default" }}
+                className="concern-card"
+              >
+                {/* Imagen */}
+                <div style={{ position: "relative", aspectRatio: "3/4", overflow: "hidden" }}>
+                  <img
+                    src={item.img}
+                    alt={item.title}
+                    style={{
+                      width: "100%", height: "100%",
+                      objectFit: "cover",
+                      filter: "grayscale(30%) brightness(0.7)",
+                      transition: "transform 0.6s ease, filter 0.4s ease",
+                    }}
+                    className="concern-img"
+                  />
+                  {/* Overlay gradiente */}
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)",
+                  }}/>
+                  {/* Stat */}
+                  <div style={{ position: "absolute", top: "1.25rem", left: "1.25rem" }}>
+                    <span style={{
+                      fontFamily: FONT_TITLE,
+                      fontWeight: 900,
+                      fontSize: "1.6rem",
+                      color: GOLD,
+                      letterSpacing: "-0.04em",
+                      lineHeight: 1,
+                      display: "block",
+                    }}>{item.stat}</span>
+                    <span style={{
+                      fontFamily: FONT,
+                      fontSize: "0.55rem",
+                      color: "rgba(255,255,255,0.4)",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                    }}>{item.statLabel}</span>
+                  </div>
+                  {/* Title */}
+                  <div style={{ position: "absolute", bottom: "1.25rem", left: "1.25rem" }}>
+                    <p style={{
+                      fontFamily: FONT,
+                      fontWeight: 600,
+                      fontSize: "0.8rem",
+                      color: "#ffffff",
+                      margin: 0,
+                      letterSpacing: "0.04em",
+                    }}>{item.title}</p>
+                  </div>
                 </div>
-                <div className="p-4 text-black/40">
-                  {other}
-                </div>
-                <div className="p-4 font-medium bg-black/5">
-                  {sumo}
-                </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-
       </div>
+
+      {/* ── BLOQUE 3: COMPARACIÓN ── */}
+      <div ref={ref3} style={{ maxWidth: "1200px", margin: "0 auto", padding: "8rem 2rem" }}>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView3 ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "6rem", alignItems: "start" }}
+          className="comparison-grid"
+        >
+          {/* Label izquierda */}
+          <div style={{ position: "sticky", top: "100px" }}>
+            <span style={{ fontFamily: FONT, fontSize: "0.6rem", letterSpacing: "0.28em", textTransform: "uppercase", color: GOLD, display: "block", marginBottom: "1rem" }}>
+              Comparación honesta
+            </span>
+            <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 900, fontSize: "clamp(1.8rem, 3vw, 2.5rem)", letterSpacing: "-0.04em", lineHeight: 1.05, color: "#0e0e0e", margin: "0 0 1.5rem" }}>
+              No todos los<br />
+              <span style={{ color: "rgba(0,0,0,0.2)" }}>Reishi son</span><br />
+              iguales.
+            </h3>
+            <p style={{ fontFamily: FONT, fontSize: "0.75rem", lineHeight: 1.8, color: "rgba(0,0,0,0.4)", margin: 0 }}>
+              La mayoría de marcas usan micelio en arroz. Nosotros usamos cuerpo fructífero completo. La diferencia es real.
+            </p>
+          </div>
+
+          {/* Tabla */}
+          <div>
+            {/* Header */}
+            <div style={{
+              display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
+              borderBottom: "1px solid rgba(0,0,0,0.08)",
+              paddingBottom: "0.75rem", marginBottom: "0",
+            }}>
+              <span style={{ fontFamily: FONT, fontSize: "0.58rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(0,0,0,0.25)" }}></span>
+              <span style={{ fontFamily: FONT, fontSize: "0.58rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(0,0,0,0.25)" }}>Otros</span>
+              <span style={{ fontFamily: FONT, fontSize: "0.58rem", letterSpacing: "0.14em", textTransform: "uppercase", color: GOLD }}>Sumo Reishi</span>
+            </div>
+
+            {comparison.map((row, i) => (
+              <motion.div
+                key={row.label}
+                initial={{ opacity: 0, x: 20 }}
+                animate={inView3 ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                style={{
+                  display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
+                  borderBottom: "1px solid rgba(0,0,0,0.06)",
+                  padding: "1.25rem 0",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.02)")}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
+              >
+                <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(0,0,0,0.4)", letterSpacing: "0.02em", alignSelf: "center" }}>
+                  {row.label}
+                </span>
+                <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(0,0,0,0.25)", textDecoration: "line-through", alignSelf: "center" }}>
+                  {row.other}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <div style={{ width: "4px", height: "4px", borderRadius: "50%", backgroundColor: GOLD, flexShrink: 0 }}/>
+                  <span style={{ fontFamily: FONT, fontWeight: 600, fontSize: "0.72rem", color: "#0e0e0e" }}>
+                    {row.sumo}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      <style>{`
+        .benefits-hero-grid { grid-template-columns: 1fr 1fr; }
+        .concerns-grid { grid-template-columns: repeat(4, 1fr); }
+        .comparison-grid { grid-template-columns: 1fr 2fr; }
+        .concern-img:hover { transform: scale(1.04); filter: grayscale(0%) brightness(0.8) !important; }
+        @media (max-width: 900px) {
+          .benefits-hero-grid { grid-template-columns: 1fr !important; gap: 3rem !important; }
+          .concerns-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .comparison-grid { grid-template-columns: 1fr !important; gap: 3rem !important; }
+          .concerns-header { flex-direction: column !important; gap: 1rem !important; }
+          .concerns-sub { text-align: left !important; }
+        }
+      `}</style>
     </section>
   );
 }
