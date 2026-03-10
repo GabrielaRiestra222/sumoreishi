@@ -39,7 +39,7 @@ export const PRODUCTS: Omit<Product, "quantity">[] = [
     price: 272,
     originalPrice: 352,
     badge: "Mejor precio",
-    image: "img10,
+    image: img10,
   },
 ];
 
