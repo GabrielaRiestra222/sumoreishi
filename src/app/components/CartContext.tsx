@@ -1,4 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import img1 from "../../assets/product-pack-1.jpg";
+import img3 from "../../assets/product-pack-3.jpg";
+import img10 from "../../assets/product-pack-10.jpg";
 
 export interface Product {
   id: string;
@@ -18,7 +21,7 @@ export const PRODUCTS: Omit<Product, "quantity">[] = [
     format: "1 ud · 60 cápsulas",
     price: 32,
     badge: undefined,
-    image: "/src/assets/product-pack-1.jpg",
+    image: img1,
   },
   {
     id: "3-pack",
@@ -27,7 +30,7 @@ export const PRODUCTS: Omit<Product, "quantity">[] = [
     price: 82,
     originalPrice: 96,
     badge: "Más elegido",
-    image: "/src/assets/product-pack-3.jpg",
+    image: img3,
   },
   {
     id: "10-pack",
@@ -36,7 +39,7 @@ export const PRODUCTS: Omit<Product, "quantity">[] = [
     price: 272,
     originalPrice: 352,
     badge: "Mejor precio",
-    image: "/src/assets/product-pack-10.jpg",
+    image: "img10,
   },
 ];
 
