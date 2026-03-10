@@ -1,0 +1,11 @@
+@font-face {
+  font-family: "Manrope";
+  src: url("/fonts/Manrope.woff2") format("woff2");
+  font-weight: 200 900;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter.woff2") format("woff2");
+  font-weight: 200 900;
+}

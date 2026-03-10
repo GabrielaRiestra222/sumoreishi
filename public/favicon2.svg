@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+
+  <!-- Tronco base grueso -->
+  <path d="M46 95 Q44 78 43 65 Q42 54 44 46" stroke="#c9a84c" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M54 95 Q56 78 57 65 Q58 54 56 46" stroke="#c9a84c" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M43 95 Q50 92 57 95" stroke="#c9a84c" stroke-width="7" fill="none" stroke-linecap="round"/>
+
+  <!-- Rama izquierda -->
+  <path d="M44 60 Q34 50 22 38" stroke="#c9a84c" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M40 54 Q30 44 20 30" stroke="#c9a84c" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+  <!-- Rama derecha -->
+  <path d="M56 60 Q66 50 78 38" stroke="#c9a84c" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M60 54 Q70 44 80 30" stroke="#c9a84c" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+  <!-- Rama central -->
+  <path d="M50 46 Q50 34 50 18" stroke="#c9a84c" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M50 30 Q43 20 40 10" stroke="#c9a84c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <path d="M50 30 Q57 20 60 10" stroke="#c9a84c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Puntas -->
+  <circle cx="20" cy="27" r="5" fill="#e8c96a"/>
+  <circle cx="18" cy="36" r="4" fill="#e8c96a"/>
+  <circle cx="40" cy="8" r="4.5" fill="#e8c96a"/>
+  <circle cx="50" cy="15" r="5" fill="#e8c96a"/>
+  <circle cx="60" cy="8" r="4.5" fill="#e8c96a"/>
+  <circle cx="80" cy="27" r="5" fill="#e8c96a"/>
+  <circle cx="82" cy="36" r="4" fill="#e8c96a"/>
+</svg>

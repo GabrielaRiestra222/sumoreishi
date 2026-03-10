@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Disallow: /confirmacion
+
+Sitemap: https://sumoreishi.com/sitemap.xml
