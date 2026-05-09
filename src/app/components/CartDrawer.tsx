@@ -1,17 +1,27 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "./CartContext";
+import { addItemsToWooCart } from "../../services/woocommerce";
 
 const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
 const GOLD = "#c9a84c";
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQty, total, count } = useCart();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
-  const handleCheckout = () => {
-    // Redsys: redirigir al TPV virtual del banco
-    // Necesita backend para generar firma HMAC-SHA256
-    // Ver instrucciones al final del archivo
-    alert("Integración Redsys pendiente de configurar con tu banco.");
+  const handleCheckout = async () => {
+    if (items.length === 0) return;
+    setIsCheckingOut(true);
+    setCheckoutError(null);
+    try {
+      await addItemsToWooCart(items);
+      window.location.href = "https://sumoreishi.com/checkout";
+    } catch {
+      setCheckoutError("No se pudo procesar el carrito. Inténtalo de nuevo.");
+      setIsCheckingOut(false);
+    }
   };
 
   return (
@@ -311,10 +321,11 @@ export function CartDrawer() {
                 {/* CTA Checkout */}
                 <button
                   onClick={handleCheckout}
+                  disabled={isCheckingOut}
                   style={{
                     width: "100%",
                     padding: "1.1rem",
-                    backgroundColor: "#ffffff",
+                    backgroundColor: isCheckingOut ? "rgba(255,255,255,0.5)" : "#ffffff",
                     color: "#0e0e0e",
                     border: "none",
                     fontFamily: FONT,
@@ -322,21 +333,32 @@ export function CartDrawer() {
                     fontSize: "0.68rem",
                     letterSpacing: "0.18em",
                     textTransform: "uppercase",
-                    cursor: "pointer",
+                    cursor: isCheckingOut ? "not-allowed" : "pointer",
                     transition: "background 0.3s, color 0.3s",
-                    marginBottom: "0.85rem",
+                    marginBottom: checkoutError ? "0.5rem" : "0.85rem",
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.backgroundColor = GOLD;
-                    e.currentTarget.style.color = "#0e0e0e";
+                    if (!isCheckingOut) e.currentTarget.style.backgroundColor = GOLD;
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.backgroundColor = "#ffffff";
-                    e.currentTarget.style.color = "#0e0e0e";
+                    if (!isCheckingOut) e.currentTarget.style.backgroundColor = "#ffffff";
                   }}
                 >
-                  Proceder al pago →
+                  {isCheckingOut ? "Procesando…" : "Proceder al pago →"}
                 </button>
+
+                {checkoutError && (
+                  <p style={{
+                    fontFamily: FONT,
+                    fontSize: "0.62rem",
+                    textAlign: "center",
+                    color: "#ff6b6b",
+                    letterSpacing: "0.04em",
+                    margin: "0 0 0.85rem",
+                  }}>
+                    {checkoutError}
+                  </p>
+                )}
 
                 <p style={{
                   fontFamily: FONT,
@@ -346,7 +368,7 @@ export function CartDrawer() {
                   letterSpacing: "0.08em",
                   margin: 0,
                 }}>
-                  Pago seguro · TPV Redsys · SSL
+                  Pago seguro · Apple Pay · Bizum · Redsys
                 </p>
               </div>
             )}
