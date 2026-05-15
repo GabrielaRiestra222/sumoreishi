@@ -33,6 +33,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Order detail /orders/:id
+  if (path.match(/^\/orders\/[^/]+\/email$/)) {
+    setRouteId(path.split('/')[2]);
+    const { default: h } = await import('./_admin/orders/email.js');
+    return h(req, res);
+  }
+
+  // Order detail /orders/:id
   if (path.match(/^\/orders\/[^/]+$/)) {
     setRouteId(path.split('/')[2]);
     const { default: h } = await import('./_admin/orders/[id].js');

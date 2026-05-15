@@ -13,6 +13,7 @@ export function Header() {
     { label: "Ciencia", href: "#science" },
     { label: "Producto", href: "#product" },
     { label: "Origen", href: "#origin" },
+    { label: "Blog Home", href: "#blog" },
     { label: "Blog", href: "/blog" },
   ];
 

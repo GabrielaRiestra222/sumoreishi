@@ -6,6 +6,7 @@ import { StickyBar } from "./components/StickyBar";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { TrustBanner } from "./components/TrustBanner";
+import { WhatsAppButton } from "./components/WhatsAppButton";
 
 // Páginas públicas
 import { PrivacidadPage } from "./components/PrivacidadPage";
@@ -68,9 +69,9 @@ function HomePage() {
         <section id="how-to-use"><HowToUseSection2 /></section>
         <section id="value-dark"><ValueDarkSection2 /></section>
         <section id="origen"><OrigenSection /></section>
+        <section id="blog" className="scroll-mt-[80px]"><BlogSection /></section>
         <section id="reviews"><ReviewsSection reviews={reviews} /></section>
         <section id="benefitsscience"><BenefitsScienceSection2 /></section>
-        <section id="blog"><BlogSection /></section>
         <section id="contacto"><ContactSection /></section>
         <section id="faq"><FAQSection2 /></section>
         <section id="purchase" className="scroll-mt-[80px]"><PurchaseSection2 /></section>
@@ -88,6 +89,7 @@ export default function App() {
         <div className="min-h-screen bg-[#F5F5F3] text-[#0e0e0e]">
           <CartDrawer />
           <CookieBanner />
+          <WhatsAppButton />
 
           <Routes>
             <Route path="/" element={<HomePage />} />

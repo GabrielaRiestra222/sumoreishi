@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, User, MapPin } from 'lucide-react';
+import { ArrowLeft, Mail, Package, User, MapPin } from 'lucide-react';
 
 type OrderStatus = 'PENDING' | 'PAID' | 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
 type ShipmentStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'IN_TRANSIT' | 'DELIVERED' | 'FAILED' | 'RETURNED';
@@ -57,6 +57,7 @@ export default function AdminOrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Estados editables
   const [status, setStatus] = useState<OrderStatus>('PENDING');
@@ -119,6 +120,27 @@ export default function AdminOrderDetailPage() {
     }
   };
 
+  const handleSendOrderEmail = async () => {
+    const token = localStorage.getItem('adminToken');
+    setSendingEmail(true);
+
+    try {
+      const response = await fetch(`/api/admin/orders/${id}/email`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) {
+        throw new Error(data.error ?? 'No se pudo enviar el email del pedido');
+      }
+      alert('Aviso de pedido enviado correctamente');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Error enviando el email del pedido');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
@@ -157,6 +179,14 @@ export default function AdminOrderDetailPage() {
               {(order.totalEurCents / 100).toFixed(2)} €
             </div>
             <div className="text-sm text-zinc-400 mt-1">{statusLabels[order.status]}</div>
+            <button
+              onClick={() => { void handleSendOrderEmail(); }}
+              disabled={sendingEmail}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-xs transition disabled:opacity-50"
+            >
+              <Mail size={14} />
+              {sendingEmail ? 'Enviando...' : 'Enviar aviso email'}
+            </button>
           </div>
         </div>
 
