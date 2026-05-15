@@ -1,14 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "./CartContext";
 
 const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
 const GOLD = "#c9a84c";
 
+interface ShippingRate {
+  id: string; name: string; description?: string; priceEurCents: number;
+  minOrderEurCents: number; estimatedDays?: string; isPickup: boolean; active: boolean;
+}
+
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQty, total, count } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
+  const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch("/api/shipping-rates")
+      .then(r => r.ok ? r.json() : [])
+      .then((data: ShippingRate[]) => setShippingRates(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [isOpen]);
+
+  const subtotalCents = Math.round(total * 100);
+  const eligibleRates = shippingRates.filter(r => subtotalCents >= r.minOrderEurCents);
+
+  useEffect(() => {
+    if (eligibleRates.length === 0) return;
+    if (!selectedRateId || !eligibleRates.find(r => r.id === selectedRateId)) {
+      setSelectedRateId(eligibleRates[0].id);
+    }
+  }, [eligibleRates.map(r => r.id).join(','), selectedRateId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectedRate = eligibleRates.find(r => r.id === selectedRateId) ?? null;
+  const shippingCostEur = selectedRate ? selectedRate.priceEurCents / 100 : 0;
+  const grandTotal = total + shippingCostEur;
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
@@ -20,6 +49,7 @@ export function CartDrawer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+          ...(selectedRateId ? { shippingRateId: selectedRateId } : {}),
         }),
       });
 
@@ -288,31 +318,91 @@ export function CartDrawer() {
                 padding: "1.5rem 2rem 2rem",
                 borderTop: "1px solid rgba(255,255,255,0.06)",
               }}>
-                {/* Envío */}
+                {/* Subtotal */}
                 <div style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "0.75rem",
+                  alignItems: "center",
+                  marginBottom: "1rem",
                 }}>
                   <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>
-                    Envío
+                    Subtotal
                   </span>
-                  {total >= 65 ? (
-                    <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: GOLD, letterSpacing: "0.05em" }}>
-                      Gratis
-                    </span>
-                  ) : (
-                    <div style={{ textAlign: "right" }}>
-                      <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>
-                        Calculado al pagar
-                      </span>
-                      <p style={{ fontFamily: FONT, fontSize: "0.62rem", color: GOLD, margin: "0.2rem 0 0", letterSpacing: "0.04em" }}>
-                        Gratis a partir de 65€ — te faltan {(65 - total).toFixed(0)}€
-                      </p>
-                    </div>
-                  )}
+                  <span style={{ fontFamily: FONT, fontSize: "0.85rem", color: "rgba(255,255,255,0.7)" }}>
+                    {total.toFixed(0)}€
+                  </span>
                 </div>
+
+                {/* Opciones de envío */}
+                {eligibleRates.length > 0 ? (
+                  <div style={{ marginBottom: "1rem" }}>
+                    <p style={{ fontFamily: FONT, fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: "0.6rem" }}>
+                      Envío
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                      {eligibleRates.map(rate => (
+                        <label
+                          key={rate.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "0.55rem 0.75rem",
+                            border: `1px solid ${selectedRateId === rate.id ? "rgba(201,168,76,0.4)" : "rgba(255,255,255,0.07)"}`,
+                            backgroundColor: selectedRateId === rate.id ? "rgba(201,168,76,0.06)" : "transparent",
+                            cursor: "pointer",
+                            transition: "border-color 0.2s, background-color 0.2s",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                            <input
+                              type="radio"
+                              name="shippingRate"
+                              value={rate.id}
+                              checked={selectedRateId === rate.id}
+                              onChange={() => setSelectedRateId(rate.id)}
+                              style={{ accentColor: GOLD, width: "13px", height: "13px" }}
+                            />
+                            <div>
+                              <p style={{ fontFamily: FONT, fontSize: "0.72rem", color: "#ffffff", margin: 0, lineHeight: 1.3 }}>
+                                {rate.name}
+                              </p>
+                              {rate.estimatedDays && (
+                                <p style={{ fontFamily: FONT, fontSize: "0.6rem", color: "rgba(255,255,255,0.3)", margin: "0.15rem 0 0", letterSpacing: "0.04em" }}>
+                                  {rate.estimatedDays} días hábiles
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <span style={{
+                            fontFamily: FONT,
+                            fontSize: "0.72rem",
+                            fontWeight: 600,
+                            color: rate.priceEurCents === 0 ? GOLD : "#ffffff",
+                            letterSpacing: "0.03em",
+                          }}>
+                            {rate.priceEurCents === 0 ? "Gratis" : `${(rate.priceEurCents / 100).toFixed(2)}€`}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ) : shippingRates.length === 0 ? (
+                  /* Fallback when no rates in DB */
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+                    <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>Envío</span>
+                    {total >= 65 ? (
+                      <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: GOLD }}>Gratis</span>
+                    ) : (
+                      <div style={{ textAlign: "right" }}>
+                        <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(255,255,255,0.35)" }}>Calculado al pagar</span>
+                        <p style={{ fontFamily: FONT, fontSize: "0.62rem", color: GOLD, margin: "0.2rem 0 0" }}>
+                          Gratis a partir de 65€ — te faltan {(65 - total).toFixed(0)}€
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
 
                 {/* Total */}
                 <div style={{
@@ -327,7 +417,7 @@ export function CartDrawer() {
                     Total
                   </span>
                   <span style={{ fontFamily: FONT, fontWeight: 700, fontSize: "1.4rem", color: "#ffffff", letterSpacing: "-0.02em" }}>
-                    {total.toFixed(0)}€
+                    {grandTotal.toFixed(0)}€
                   </span>
                 </div>
 

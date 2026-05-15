@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 import { setCors } from './_lib/cors.js';
+import { prisma } from './_lib/prisma.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -25,6 +26,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         <p>${message.replace(/\n/g, '<br>')}</p>
       `
     });
+
+    // Guardar en base de datos (no bloqueante si el email falla)
+    await prisma.contact.create({ data: { name, email, message } });
 
     return res.status(200).json({ success: true });
   } catch (error) {

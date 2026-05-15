@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "seed:shipping": "tsx scripts/seed-shipping.ts"
   },
   "dependencies": {
     "@prisma/client": "6.10.0",

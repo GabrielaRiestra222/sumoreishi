@@ -143,3 +143,48 @@ enum ShipmentStatus {
   FAILED
   RETURNED
 }
+
+// ─── Tarifas de envío ────────────────────────────────────────────────────────
+
+model ShippingRate {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  country          String   @default("*") // "ES", "PT", "FR", … o "*" para todos
+  region           String?  // "Peninsula", "Baleares", "Canarias", etc.
+  priceEurCents    Int
+  minOrderEurCents Int      @default(0)
+  estimatedDays    String?  // "2-3", "3-5", etc.
+  active           Boolean  @default(true)
+  priority         Int      @default(0)
+  isPickup         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// ─── Contactos ───────────────────────────────────────────────────────────────
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ─── Blog ────────────────────────────────────────────────────────────────────
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text
+  excerpt     String?
+  imageUrl    String?
+  category    String?
+  status      String    @default("draft") // draft | published
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

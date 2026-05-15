@@ -21,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { items } = req.body as { items: CartItem[] };
+  const { items, shippingRateId } = req.body as { items: CartItem[]; shippingRateId?: string };
 
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "No items provided" });
@@ -44,49 +44,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     0
   );
 
-  const freeShipping = subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS;
-
-  const shippingOptions: Stripe.Checkout.SessionCreateParams.ShippingOption[] =
-    freeShipping
-      ? [
-          {
-            shipping_rate_data: {
-              type: "fixed_amount",
-              fixed_amount: { amount: 0, currency: "eur" },
-              display_name: "Envío gratuito",
-              delivery_estimate: {
-                minimum: { unit: "business_day", value: 2 },
-                maximum: { unit: "business_day", value: 3 },
-              },
-            },
-          },
-        ]
-      : [
-          {
-            shipping_rate_data: {
-              type: "fixed_amount",
-              fixed_amount: { amount: 495, currency: "eur" },
-              display_name: "Envío estándar (2–3 días hábiles)",
-              delivery_estimate: {
-                minimum: { unit: "business_day", value: 2 },
-                maximum: { unit: "business_day", value: 3 },
-              },
-            },
-          },
-        ];
-
   const origin =
     (req.headers.origin as string) || `https://${req.headers.host}`;
 
   try {
+    // Resolver tarifa de envío desde la base de datos o usar fallback
+    let shippingName = "Envío estándar";
+    let shippingCents = 0;
+
+    if (shippingRateId) {
+      const rate = await prisma.shippingRate.findFirst({
+        where: { id: shippingRateId, active: true },
+      });
+      if (rate) {
+        shippingName = rate.name;
+        shippingCents = rate.priceEurCents;
+      } else {
+        shippingCents = subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS ? 0 : 495;
+        shippingName =
+          shippingCents === 0 ? "Envío gratuito" : "Envío estándar (2–3 días hábiles)";
+      }
+    } else {
+      shippingCents = subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS ? 0 : 495;
+      shippingName =
+        shippingCents === 0 ? "Envío gratuito" : "Envío estándar (2–3 días hábiles)";
+    }
+
+    const totalCents = subtotalCents + shippingCents;
+
     // 1. Crear pedido en la base de datos en estado PENDING
     const order = await prisma.order.create({
       data: {
-        totalEurCents: subtotalCents,
+        totalEurCents: totalCents,
         items: {
           create: await Promise.all(
             validItems.map(async ({ product, quantity }) => {
-              // Upsert product en el catálogo local
               const dbProduct = await prisma.product.upsert({
                 where: { slug: product.slug },
                 update: { priceEurCents: product.priceEurCents, active: true },
@@ -111,21 +103,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     // 2. Crear sesión de Stripe Checkout
+    const productLines = validItems.map(({ product, quantity }) => ({
+      price_data: {
+        currency: "eur",
+        product_data: { name: `${product.name} — ${product.format}` },
+        unit_amount: product.priceEurCents,
+      },
+      quantity,
+    }));
+
+    const shippingLine =
+      shippingCents > 0
+        ? [
+            {
+              price_data: {
+                currency: "eur",
+                product_data: { name: shippingName },
+                unit_amount: shippingCents,
+              },
+              quantity: 1,
+            },
+          ]
+        : [];
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: validItems.map(({ product, quantity }) => ({
-        price_data: {
-          currency: "eur",
-          product_data: { name: `${product.name} — ${product.format}` },
-          unit_amount: product.priceEurCents,
-        },
-        quantity,
-      })),
+      line_items: [...productLines, ...shippingLine],
       mode: "payment",
       shipping_address_collection: {
         allowed_countries: ["ES", "PT", "FR", "DE", "IT", "GB", "BE", "NL"],
       },
-      shipping_options: shippingOptions,
       locale: "es",
       success_url: `${origin}/confirmacion?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#purchase`,

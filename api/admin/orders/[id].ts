@@ -94,5 +94,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // DELETE — eliminar pedido
+  if (req.method === 'DELETE') {
+    try {
+      // Borrar en cascada: items, eventos de pago, envío, direcciones
+      await prisma.$transaction([
+        prisma.paymentEvent.deleteMany({ where: { orderId: id as string } }),
+        prisma.shipment.deleteMany({ where: { orderId: id as string } }),
+        prisma.orderItem.deleteMany({ where: { orderId: id as string } }),
+        prisma.address.deleteMany({
+          where: {
+            OR: [
+              { shippingOrderId: id as string },
+              { billingOrderId: id as string },
+            ],
+          },
+        }),
+        prisma.order.delete({ where: { id: id as string } }),
+      ]);
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
   return res.status(405).json({ error: 'Method not allowed' });
 }

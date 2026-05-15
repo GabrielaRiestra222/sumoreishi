@@ -7,7 +7,7 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { TrustBanner } from "./components/TrustBanner";
 
-// Páginas
+// Páginas públicas
 import { PrivacidadPage } from "./components/PrivacidadPage";
 import { AvisoLegalPage } from "./components/AvisoLegalPage";
 import { CookiesPage } from "./components/CookiesPage";
@@ -19,8 +19,15 @@ import { BlogPostPage } from "./components/BlogPostPage";
 
 // Admin
 import { AdminLoginPage } from "./admin/AdminLoginPage";
+import { AdminLayout } from "./admin/AdminLayout";
+import { AdminDashboardPage } from "./admin/AdminDashboardPage";
 import { AdminOrdersPage } from "./admin/AdminOrdersPage";
 import AdminOrderDetailPage from "./admin/AdminOrderDetailPage";
+import { AdminContactsPage } from "./admin/AdminContactsPage";
+import { AdminBlogPage } from "./admin/AdminBlogPage";
+import { AdminProductsPage } from "./admin/AdminProductsPage";
+import { AdminSettingsPage } from "./admin/AdminSettingsPage";
+import { AdminShippingPage } from "./admin/AdminShippingPage";
 
 // Secciones home
 import { HeroSection } from "./components/HeroSection";
@@ -96,11 +103,20 @@ export default function App() {
             {/* Post-pago */}
             <Route path="/confirmacion" element={<ConfirmacionPage />} />
 
-            {/* Admin */}
+            {/* Admin — login sin layout */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/admin/orders" element={<AdminOrdersPage />} />
-            <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
-            <Route path="/admin" element={<AdminLoginPage />} />
+
+            {/* Admin — con sidebar layout */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="orders" element={<AdminOrdersPage />} />
+              <Route path="orders/:id" element={<AdminOrderDetailPage />} />
+              <Route path="contacts" element={<AdminContactsPage />} />
+              <Route path="blog" element={<AdminBlogPage />} />
+              <Route path="products" element={<AdminProductsPage />} />
+              <Route path="shipping" element={<AdminShippingPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+            </Route>
 
             {/* 404 */}
             <Route path="*" element={<NotFoundPage />} />
