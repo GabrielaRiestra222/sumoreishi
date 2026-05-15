@@ -9,6 +9,7 @@
 const RESEND_API_URL = "https://api.resend.com/emails";
 const FROM_ADDRESS = process.env.RESEND_FROM ?? "Sumo Reishi <onboarding@resend.dev>";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "gabriela.riestra.lucas@gmail.com";
+const USING_RESEND_TEST_DOMAIN = FROM_ADDRESS.includes("@resend.dev");
 
 interface OrderItem {
   name: string;
@@ -25,6 +26,16 @@ async function sendEmail(payload: {
 
   if (!apiKey) {
     console.log("[email] RESEND_API_KEY no configurada — email omitido:", payload.subject, "→", payload.to);
+    return;
+  }
+
+  if (USING_RESEND_TEST_DOMAIN && payload.to !== ADMIN_EMAIL) {
+    console.log(
+      "[email] Email omitido: onboarding@resend.dev solo puede enviar al email de la cuenta Resend.",
+      payload.subject,
+      "→",
+      payload.to
+    );
     return;
   }
 
