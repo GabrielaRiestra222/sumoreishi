@@ -36,7 +36,8 @@ export function CartDrawer() {
   }, [eligibleRates.map(r => r.id).join(','), selectedRateId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedRate = eligibleRates.find(r => r.id === selectedRateId) ?? null;
-  const shippingCostEur = selectedRate ? selectedRate.priceEurCents / 100 : 0;
+  const fallbackShippingCents = subtotalCents >= 6500 ? 0 : 495;
+  const shippingCostEur = (selectedRate?.priceEurCents ?? fallbackShippingCents) / 100;
   const grandTotal = total + shippingCostEur;
 
   const handleCheckout = async () => {
@@ -391,11 +392,11 @@ export function CartDrawer() {
                   /* Fallback when no rates in DB */
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
                     <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>Envío</span>
-                    {total >= 65 ? (
+                    {fallbackShippingCents === 0 ? (
                       <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: GOLD }}>Gratis</span>
                     ) : (
                       <div style={{ textAlign: "right" }}>
-                        <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(255,255,255,0.35)" }}>Calculado al pagar</span>
+                        <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "#ffffff" }}>{(fallbackShippingCents / 100).toFixed(2)}€</span>
                         <p style={{ fontFamily: FONT, fontSize: "0.62rem", color: GOLD, margin: "0.2rem 0 0" }}>
                           Gratis a partir de 65€ — te faltan {(65 - total).toFixed(0)}€
                         </p>
@@ -471,7 +472,7 @@ export function CartDrawer() {
                   letterSpacing: "0.08em",
                   margin: 0,
                 }}>
-                  Pago seguro · Apple Pay · Bizum · Redsys
+                  Pago seguro · Tarjeta · Apple Pay · Google Pay
                 </p>
               </div>
             )}

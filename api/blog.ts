@@ -10,7 +10,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const path = (req.url ?? '').replace(/^\/api\/blog/, '') || '/';
+  const requestUrl = new URL(req.url ?? '/api/blog', `https://${req.headers.host ?? 'localhost'}`);
+  const path = requestUrl.pathname.replace(/^\/api\/blog/, '') || '/';
 
   // Lista de posts: /api/blog/posts
   if (path === '/posts' || path === '/posts/') {

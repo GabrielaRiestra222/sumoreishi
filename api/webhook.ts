@@ -91,7 +91,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
   const shippingDetails = fullSession.shipping_details;
 
   // Actualizar pedido en transacción
-  await prisma.$transaction(async (tx) => {
+  const order = await prisma.$transaction(async (tx) => {
     // Upsert cliente
     let customerId: string | undefined;
     if (customerDetails?.email) {
@@ -126,7 +126,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
       : {};
 
     // Actualizar pedido a PAID
-    const order = await tx.order.update({
+    const paidOrder = await tx.order.update({
       where: { id: orderId },
       data: {
         status: "PAID",
@@ -138,41 +138,51 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
     // Crear Shipment vacío (listo para gestión manual)
     await tx.shipment.upsert({
-      where: { orderId: order.id },
+      where: { orderId: paidOrder.id },
       update: {},
-      create: { orderId: order.id, status: "PENDING" },
+      create: { orderId: paidOrder.id, status: "PENDING" },
     });
 
     // Registrar evento de pago
     await tx.paymentEvent.create({
       data: {
-        orderId: order.id,
+        orderId: paidOrder.id,
         stripeEventId: event.id,
         type: event.type,
         data: event.data.object as object,
       },
     });
 
-    // Enviar emails (no bloquear si fallan)
-    if (customerDetails?.email) {
-      void sendOrderConfirmationToCustomer({
-        to: customerDetails.email,
-        customerName: customerDetails.name ?? "Cliente",
-        orderId: order.id,
-        items: order.items.map((i) => ({
-          name: i.product.name,
-          quantity: i.quantity,
-          unitEurCents: i.unitEurCents,
-        })),
-        totalEurCents: order.totalEurCents,
-      }).catch((e) => console.error("[email] Confirmation failed:", e));
-    }
+    return paidOrder;
+  });
 
-    void sendNewOrderNotificationToAdmin({
+  // En serverless conviene esperar a Resend antes de responder al webhook.
+  const emailJobs: Promise<void>[] = [];
+  if (customerDetails?.email) {
+    emailJobs.push(sendOrderConfirmationToCustomer({
+      to: customerDetails.email,
+      customerName: customerDetails.name ?? "Cliente",
       orderId: order.id,
-      customerEmail: customerDetails?.email ?? "desconocido",
+      items: order.items.map((i) => ({
+        name: i.product.name,
+        quantity: i.quantity,
+        unitEurCents: i.unitEurCents,
+      })),
       totalEurCents: order.totalEurCents,
-    }).catch((e) => console.error("[email] Admin notification failed:", e));
+    }));
+  }
+
+  emailJobs.push(sendNewOrderNotificationToAdmin({
+    orderId: order.id,
+    customerEmail: customerDetails?.email ?? "desconocido",
+    totalEurCents: order.totalEurCents,
+  }));
+
+  const emailResults = await Promise.allSettled(emailJobs);
+  emailResults.forEach((result) => {
+    if (result.status === "rejected") {
+      console.error("[email] Order email failed:", result.reason);
+    }
   });
 }
 

@@ -7,7 +7,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handlePreflight(req, res)) return;
 
   const token = (req.headers.authorization ?? '').replace('Bearer ', '');
-  const path = (req.url ?? '').replace(/^\/api\/admin/, '') || '/';
+  const requestUrl = new URL(req.url ?? '/api/admin', `https://${req.headers.host ?? 'localhost'}`);
+  const path = requestUrl.pathname.replace(/^\/api\/admin/, '') || '/';
   const isLoginRequest = path === '/login';
 
   if (!isLoginRequest && !verifyAdminToken(token)) {

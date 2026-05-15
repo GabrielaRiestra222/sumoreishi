@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
+type ContactFormState = {
+  nombre: string;
+  email: string;
+  telefono: string;
+  notas: string;
+};
+
 export function ContactSection() {
-  const [form, setForm] = useState({ nombre: "", email: "", telefono: "" });
+  const [form, setForm] = useState<ContactFormState>({ nombre: "", email: "", telefono: "", notas: "" });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
@@ -15,8 +22,16 @@ export function ContactSection() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSupplierClick = () => {
+    setForm((current) => ({
+      ...current,
+      notas: current.notas || "Quiero ser proveedor de Sumo Reishi. Me interesa conocer la oferta especial para proveedores.",
+    }));
+    window.setTimeout(() => document.getElementById("contact-notas")?.focus(), 0);
   };
 
   const handleSubmit = async () => {
@@ -29,7 +44,10 @@ export function ContactSection() {
         body: JSON.stringify({
           name: form.nombre,
           email: form.email,
-          message: form.telefono ? `Teléfono: ${form.telefono}` : '(sin teléfono)',
+          message: [
+            form.telefono ? `Teléfono: ${form.telefono}` : "Teléfono: (sin teléfono)",
+            form.notas ? `Notas: ${form.notas}` : "Notas: (sin notas)",
+          ].join("\n\n"),
         }),
       });
     } catch {
@@ -157,6 +175,61 @@ export function ContactSection() {
               hola@sumoreishi.com
             </p>
           </div>
+
+          <div style={{
+            marginTop: "1.75rem",
+            borderTop: "1px solid rgba(0,0,0,0.08)",
+            paddingTop: "1.75rem",
+            maxWidth: "340px",
+          }}>
+            <p style={{
+              fontFamily: '"Helvetica Neue","Helvetica","Arial",sans-serif',
+              fontSize: "0.58rem",
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "rgba(0,0,0,0.25)",
+              margin: "0 0 0.65rem 0",
+            }}>
+              ¿Eres proveedor?
+            </p>
+            <p style={{
+              fontFamily: '"Helvetica Neue","Helvetica","Arial",sans-serif',
+              fontSize: "0.82rem",
+              lineHeight: 1.65,
+              color: "rgba(0,0,0,0.48)",
+              margin: "0 0 1rem 0",
+            }}>
+              Si quieres ser proveedor de Sumo Reishi, tenemos una oferta especial para ti.
+            </p>
+            <button
+              type="button"
+              onClick={handleSupplierClick}
+              style={{
+                padding: "1rem 2rem",
+                backgroundColor: "transparent",
+                color: "#1a1a1a",
+                border: "1px solid rgba(0,0,0,0.25)",
+                fontFamily: '"Helvetica Neue","Helvetica","Arial",sans-serif',
+                fontSize: "0.62rem",
+                fontWeight: 700,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
+                transition: "background 0.3s, color 0.3s",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = "#1a1a1a";
+                e.currentTarget.style.color = "#F0F0EC";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#1a1a1a";
+              }}
+            >
+              Quiero ser proveedor
+            </button>
+          </div>
         </motion.div>
 
         {/* DERECHA — formulario */}
@@ -215,6 +288,55 @@ export function ContactSection() {
                   />
                 </div>
               ))}
+
+              <div
+                style={{
+                  borderBottom: "1px solid",
+                  borderBottomColor: focused === "notas" ? "rgba(0,0,0,0.55)" : "rgba(0,0,0,0.12)",
+                  paddingTop: "1.75rem",
+                  paddingBottom: "1.25rem",
+                  transition: "border-color 0.3s",
+                }}
+              >
+                <label style={{
+                  display: "block",
+                  fontFamily: '"Helvetica Neue","Helvetica","Arial",sans-serif',
+                  fontSize: "0.58rem",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: focused === "notas" ? "rgba(0,0,0,0.65)" : "rgba(0,0,0,0.3)",
+                  marginBottom: "0.55rem",
+                  transition: "color 0.3s",
+                }}>
+                  Notas
+                </label>
+                <textarea
+                  id="contact-notas"
+                  name="notas"
+                  value={form.notas}
+                  onChange={handleChange}
+                  onFocus={() => setFocused("notas")}
+                  onBlur={() => setFocused(null)}
+                  placeholder="Cuéntanos en qué podemos ayudarte"
+                  rows={5}
+                  style={{
+                    width: "100%",
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    resize: "vertical",
+                    minHeight: "120px",
+                    fontFamily: '"Helvetica Neue","Helvetica","Arial",sans-serif',
+                    fontSize: isMobile ? "1.05rem" : "1rem",
+                    fontWeight: 500,
+                    color: "#1a1a1a",
+                    lineHeight: 1.5,
+                    letterSpacing: "-0.01em",
+                    padding: 0,
+                    caretColor: "#1a1a1a",
+                  }}
+                />
+              </div>
 
               <button
                 onClick={() => { void handleSubmit(); }}
