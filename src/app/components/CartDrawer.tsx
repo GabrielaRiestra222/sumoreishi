@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "./CartContext";
-import { addItemsToWooCart } from "../../services/woocommerce";
 
 const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
 const GOLD = "#c9a84c";
@@ -16,10 +15,24 @@ export function CartDrawer() {
     setIsCheckingOut(true);
     setCheckoutError(null);
     try {
-      await addItemsToWooCart(items);
-      window.location.href = "https://sumoreishi.com/checkout";
-    } catch {
-      setCheckoutError("No se pudo procesar el carrito. Inténtalo de nuevo.");
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(data.error ?? `Error ${response.status}`);
+      }
+
+      const { url } = await response.json() as { url: string };
+      window.location.href = url;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error desconocido";
+      setCheckoutError(msg || "No se pudo procesar el carrito. Inténtalo de nuevo.");
       setIsCheckingOut(false);
     }
   };

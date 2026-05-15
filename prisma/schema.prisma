@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Catálogo ────────────────────────────────────────────────────────────────
+
+model Product {
+  id            String      @id @default(cuid())
+  slug          String      @unique // "1-unit" | "3-pack" | "10-pack"
+  name          String
+  format        String
+  priceEurCents Int
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  orderItems    OrderItem[]
+}
+
+// ─── Clientes ────────────────────────────────────────────────────────────────
+
+model Customer {
+  id        String   @id @default(cuid())
+  email     String
+  name      String?
+  phone     String?
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+// ─── Pedidos ─────────────────────────────────────────────────────────────────
+
+model Order {
+  id              String      @id @default(cuid())
+  stripeSessionId String?     @unique
+  status          OrderStatus @default(PENDING)
+  totalEurCents   Int
+  currency        String      @default("eur")
+  internalNotes   String?
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  shippingAddress Address?       @relation("ShippingAddress")
+  billingAddress  Address?       @relation("BillingAddress")
+  items           OrderItem[]
+  paymentEvents   PaymentEvent[]
+  shipment        Shipment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PREPARING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+// ─── Líneas de pedido ────────────────────────────────────────────────────────
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id])
+  productId    String
+  product      Product @relation(fields: [productId], references: [id])
+  quantity     Int
+  unitEurCents Int
+  // Snapshot en el momento del pedido (inmutable aunque cambie el catálogo)
+  productName   String
+  productFormat String
+
+  createdAt DateTime @default(now())
+}
+
+// ─── Direcciones ─────────────────────────────────────────────────────────────
+
+model Address {
+  id         String  @id @default(cuid())
+  line1      String
+  line2      String?
+  city       String
+  state      String?
+  postalCode String
+  country    String
+
+  shippingOrderId String? @unique
+  shippingOrder   Order?  @relation("ShippingAddress", fields: [shippingOrderId], references: [id])
+
+  billingOrderId String? @unique
+  billingOrder   Order?  @relation("BillingAddress", fields: [billingOrderId], references: [id])
+}
+
+// ─── Eventos de pago ─────────────────────────────────────────────────────────
+
+model PaymentEvent {
+  id            String @id @default(cuid())
+  orderId       String
+  order         Order  @relation(fields: [orderId], references: [id])
+  stripeEventId String @unique
+  type          String
+  data          Json
+
+  createdAt DateTime @default(now())
+}
+
+// ─── Envíos ──────────────────────────────────────────────────────────────────
+
+model Shipment {
+  id             String         @id @default(cuid())
+  orderId        String         @unique
+  order          Order          @relation(fields: [orderId], references: [id])
+  status         ShipmentStatus @default(PENDING)
+  carrier        String?
+  trackingNumber String?
+  shippedAt      DateTime?
+  estimatedAt    DateTime?
+  notes          String?
+
+  // Abstracción para integración futura con Sendcloud / Packlink / Correos
+  externalShipmentId String?
+  externalProvider   String? // "sendcloud" | "packlink" | "correos"
+  externalData       Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ShipmentStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+  RETURNED
+}

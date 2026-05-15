@@ -17,6 +17,11 @@ import { NotFoundPage } from "./components/NotFoundPage";
 import { BlogPage } from "./components/BlogPage";
 import { BlogPostPage } from "./components/BlogPostPage";
 
+// Admin
+import { AdminLoginPage } from "./admin/AdminLoginPage";
+import { AdminOrdersPage } from "./admin/AdminOrdersPage";
+import { AdminOrderDetailPage } from "./admin/AdminOrderDetailPage";
+
 // Secciones home
 import { HeroSection } from "./components/HeroSection";
 import { ProductInfo } from "./components/ProductInfo";
@@ -90,6 +95,12 @@ export default function App() {
 
             {/* Post-pago */}
             <Route path="/confirmacion" element={<ConfirmacionPage />} />
+
+            {/* Admin */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin/orders" element={<AdminOrdersPage />} />
+            <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
+            <Route path="/admin" element={<AdminLoginPage />} />
 
             {/* 404 */}
             <Route path="*" element={<NotFoundPage />} />
