@@ -89,6 +89,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
   const customerDetails = fullSession.customer_details;
   const shippingDetails = fullSession.collected_information?.shipping_details;
+  const customerName = customerDetails?.name ?? shippingDetails?.name ?? undefined;
 
   // Actualizar pedido en transacción
   const order = await prisma.$transaction(async (tx) => {
@@ -97,11 +98,14 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     if (customerDetails?.email) {
       const customer = await tx.customer.upsert({
         where: { id: `email:${customerDetails.email}` },
-        update: { name: customerDetails.name ?? undefined },
+        update: {
+          name: customerName,
+          phone: customerDetails.phone ?? undefined,
+        },
         create: {
           id: `email:${customerDetails.email}`,
           email: customerDetails.email,
-          name: customerDetails.name ?? undefined,
+          name: customerName,
           phone: customerDetails.phone ?? undefined,
         },
       });
@@ -161,7 +165,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
   if (customerDetails?.email) {
     emailJobs.push(sendOrderConfirmationToCustomer({
       to: customerDetails.email,
-      customerName: customerDetails.name ?? "Cliente",
+      customerName: customerName ?? "Cliente",
       orderId: order.id,
       items: order.items.map((i) => ({
         name: i.product.name,
@@ -174,7 +178,14 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
   emailJobs.push(sendNewOrderNotificationToAdmin({
     orderId: order.id,
+    customerName,
     customerEmail: customerDetails?.email ?? "desconocido",
+    customerPhone: customerDetails?.phone ?? undefined,
+    items: order.items.map((i) => ({
+      name: i.product.name,
+      quantity: i.quantity,
+      unitEurCents: i.unitEurCents,
+    })),
     totalEurCents: order.totalEurCents,
   }));
 

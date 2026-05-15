@@ -1,9 +1,34 @@
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
 const GOLD = "#c9a84c";
 
 export function ConfirmacionPage() {
+  const [syncStatus, setSyncStatus] = useState<"syncing" | "done" | "pending" | "error">("syncing");
+
+  useEffect(() => {
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+    if (!sessionId) {
+      setSyncStatus("pending");
+      return;
+    }
+
+    fetch("/api/confirm-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    })
+      .then((response) => {
+        if (response.status === 202) {
+          setSyncStatus("pending");
+          return;
+        }
+        setSyncStatus(response.ok ? "done" : "error");
+      })
+      .catch(() => setSyncStatus("error"));
+  }, []);
+
   return (
     <div style={{ backgroundColor: "#0e0e0e", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <motion.div
@@ -41,6 +66,14 @@ export function ConfirmacionPage() {
         <p style={{ fontFamily: FONT, fontSize: "0.8rem", lineHeight: 1.85, color: "rgba(255,255,255,0.4)", margin: "0 0 2.5rem" }}>
           Tu pedido ha sido procesado correctamente. Recibirás un email de confirmación en breve con los detalles del envío. La entrega estimada es de 48–72 horas.
         </p>
+
+        {syncStatus !== "done" && (
+          <p style={{ fontFamily: FONT, fontSize: "0.65rem", lineHeight: 1.7, color: syncStatus === "error" ? "#ff8a8a" : "rgba(255,255,255,0.35)", margin: "-1.5rem 0 2rem" }}>
+            {syncStatus === "syncing" && "Confirmando el pedido..."}
+            {syncStatus === "pending" && "Estamos esperando la confirmación final de Stripe."}
+            {syncStatus === "error" && "El pago está confirmado, pero no hemos podido sincronizar el aviso automático. Lo revisaremos desde el panel."}
+          </p>
+        )}
 
         <div style={{
           border: "1px solid rgba(255,255,255,0.06)",

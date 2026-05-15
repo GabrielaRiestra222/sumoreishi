@@ -149,15 +149,30 @@ export async function sendOrderConfirmationToCustomer(params: {
 
 export async function sendNewOrderNotificationToAdmin(params: {
   orderId: string;
+  customerName?: string;
   customerEmail: string;
+  customerPhone?: string;
+  items?: OrderItem[];
   totalEurCents: number;
 }): Promise<void> {
+  const itemsHtml = params.items?.length
+    ? `
+      <p><b>Productos:</b></p>
+      <ul>
+        ${params.items.map((item) => `<li>${item.name} ×${item.quantity}</li>`).join("")}
+      </ul>
+    `
+    : "";
+
   const html = `
     <div style="font-family:monospace;padding:24px">
       <h2>🛒 Nuevo pedido</h2>
       <p><b>ID:</b> ${params.orderId}</p>
-      <p><b>Cliente:</b> ${params.customerEmail}</p>
+      <p><b>Cliente:</b> ${params.customerName || "—"}</p>
+      <p><b>Email:</b> ${params.customerEmail}</p>
+      <p><b>Teléfono:</b> ${params.customerPhone || "—"}</p>
       <p><b>Total:</b> ${(params.totalEurCents / 100).toFixed(2)} €</p>
+      ${itemsHtml}
       <p><a href="https://sumoreishi.com/admin/orders/${params.orderId}">Ver pedido en el panel</a></p>
     </div>
   `;

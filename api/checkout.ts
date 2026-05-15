@@ -126,6 +126,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       shipping_address_collection: {
         allowed_countries: ["ES", "PT", "FR", "DE", "IT", "GB", "BE", "NL"],
       },
+      phone_number_collection: {
+        enabled: true,
+      },
       shipping_options: [
         {
           shipping_rate_data: {

@@ -14,7 +14,7 @@ const ALL_STATUSES = ['', 'PENDING', 'PAID', 'PREPARING', 'SHIPPED', 'DELIVERED'
 
 interface Order {
   id: string; status: string; totalEurCents: number; createdAt: string;
-  customer?: { email: string; name?: string };
+  customer?: { email: string; name?: string; phone?: string };
   items: Array<{ productName: string; quantity: number }>;
   shipment?: { trackingNumber?: string };
 }
@@ -70,7 +70,8 @@ export function AdminOrdersPage() {
     ? orders.filter(o =>
         o.id.includes(search) ||
         o.customer?.email?.toLowerCase().includes(search.toLowerCase()) ||
-        o.customer?.name?.toLowerCase().includes(search.toLowerCase())
+        o.customer?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        o.customer?.phone?.toLowerCase().includes(search.toLowerCase())
       )
     : orders;
 
@@ -95,7 +96,7 @@ export function AdminOrdersPage() {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
-            placeholder="Buscar por ID, email o nombre…"
+            placeholder="Buscar por ID, email, nombre o teléfono…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-zinc-900 border border-zinc-700 rounded pl-8 pr-4 py-2 text-sm focus:outline-none focus:border-yellow-500/50"
@@ -144,7 +145,17 @@ export function AdminOrdersPage() {
                   <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">
                     {new Date(order.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                   </td>
-                  <td className="px-4 py-3 text-xs">{order.customer?.email ?? <span className="text-zinc-600">—</span>}</td>
+                  <td className="px-4 py-3 text-xs">
+                    {order.customer ? (
+                      <div className="space-y-0.5">
+                        <div className="font-medium text-zinc-200">{order.customer.name || 'Sin nombre'}</div>
+                        <div className="text-zinc-500">{order.customer.email}</div>
+                        {order.customer.phone && <div className="text-zinc-500">{order.customer.phone}</div>}
+                      </div>
+                    ) : (
+                      <span className="text-zinc-600">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-xs text-zinc-400 max-w-[180px] truncate">
                     {order.items.map(i => `${i.productName} ×${i.quantity}`).join(', ')}
                   </td>

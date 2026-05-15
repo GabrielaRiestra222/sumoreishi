@@ -43,6 +43,7 @@ import { BenefitsScienceSection2 } from "./components/BenefitsScienceSection2";
 import { FAQSection2 } from "./components/FAQSection2";
 import { PurchaseSection2 } from "./components/PurchaseSection2";
 import { ContactSection } from "./components/ContactSection";
+import { BlogSection } from "./components/BlogSection";
 
 function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -69,6 +70,7 @@ function HomePage() {
         <section id="origen"><OrigenSection /></section>
         <section id="reviews"><ReviewsSection reviews={reviews} /></section>
         <section id="benefitsscience"><BenefitsScienceSection2 /></section>
+        <section id="blog"><BlogSection /></section>
         <section id="contacto"><ContactSection /></section>
         <section id="faq"><FAQSection2 /></section>
         <section id="purchase" className="scroll-mt-[80px]"><PurchaseSection2 /></section>

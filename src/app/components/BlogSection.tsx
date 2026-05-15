@@ -45,7 +45,7 @@ export function BlogSection() {
   return (
     <section style={{ backgroundColor: "#F0F0EC", padding: "6rem 0" }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 2rem" }}>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "3.5rem" }}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "1.5rem", flexWrap: "wrap", marginBottom: "3.5rem" }}>
           <div>
             <p style={{ fontFamily: FONT, fontSize: "0.58rem", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(0,0,0,0.3)", marginBottom: "0.5rem" }}>
               Blog
@@ -54,9 +54,26 @@ export function BlogSection() {
               Del hongo al<br />
               <span style={{ color: "rgba(0,0,0,0.2)" }}>conocimiento</span>
             </h2>
+            <p style={{ fontFamily: FONT, fontSize: "0.82rem", lineHeight: 1.75, color: "rgba(0,0,0,0.48)", maxWidth: "360px", margin: "1.25rem 0 0" }}>
+              Guías breves sobre Reishi, evidencia científica y uso diario para comprar con más criterio.
+            </p>
           </div>
-          <Link to="/blog" style={{ fontFamily: FONT, fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", color: GOLD, textDecoration: "none" }}>
-            Ver todo →
+          <Link
+            to="/blog"
+            style={{
+              fontFamily: FONT,
+              fontSize: "0.62rem",
+              fontWeight: 700,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              color: "#1a1a1a",
+              border: "1px solid rgba(0,0,0,0.22)",
+              padding: "0.9rem 1.2rem",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Consulta nuestro blog
           </Link>
         </div>
 
