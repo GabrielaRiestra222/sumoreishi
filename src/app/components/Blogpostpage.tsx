@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { POSTS } from "./BlogPage";
+import { useEffect, useState } from "react";
 
 const FONT_TITLE = '"Manrope","Inter","Helvetica Now",sans-serif';
 const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
@@ -47,12 +48,58 @@ const sectionStyle = {
   whiteSpace: "pre-line" as const,
 };
 
+interface DbPost {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  category?: string;
+  publishedAt?: string;
+  imageUrl?: string;
+}
+
 export function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
-  const post = POSTS.find(p => p.slug === slug);
-  const content = slug ? CONTENT[slug] : null;
+  const [dbPost, setDbPost] = useState<DbPost | null>(null);
+  const [loading, setLoading] = useState(Boolean(slug));
 
-  if (!post || !content) {
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    fetch(`/api/blog/${slug}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((data: DbPost | null) => setDbPost(data))
+      .catch(() => setDbPost(null))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  const staticPost = POSTS.find(p => p.slug === slug);
+  const post = dbPost
+    ? {
+        slug: dbPost.slug,
+        title: dbPost.title,
+        excerpt: dbPost.excerpt ?? "",
+        date: dbPost.publishedAt ? new Date(dbPost.publishedAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : "",
+        readTime: "",
+        category: dbPost.category ?? "",
+      }
+    : staticPost;
+  const content = slug ? CONTENT[slug] : null;
+  const dbSections = dbPost?.content
+    .split(/\n{2,}/)
+    .map((body) => body.trim())
+    .filter(Boolean)
+    .map((body) => ({ body }));
+
+  if (loading && !staticPost) {
+    return (
+      <div style={{ backgroundColor: "#f5f5f3", minHeight: "100vh", paddingTop: "100px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ fontFamily: FONT, color: "rgba(0,0,0,0.4)" }}>Cargando artículo...</p>
+      </div>
+    );
+  }
+
+  if (!post || (!content && !dbSections)) {
     return (
       <div style={{ backgroundColor: "#f5f5f3", minHeight: "100vh", paddingTop: "100px", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ fontFamily: FONT, color: "rgba(0,0,0,0.4)" }}>Artículo no encontrado.</p>
@@ -81,7 +128,7 @@ export function BlogPostPage() {
           </h1>
 
           <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: "3rem" }}>
-            {content.sections.map((section, i) => (
+            {(dbSections ?? content?.sections ?? []).map((section, i) => (
               <div key={i} style={{ marginBottom: "2.5rem" }}>
                 {section.title && (
                   <h2 style={{ fontFamily: FONT_TITLE, fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.02em", color: "#0e0e0e", margin: "0 0 0.75rem" }}>

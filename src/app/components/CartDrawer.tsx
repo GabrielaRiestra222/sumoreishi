@@ -10,6 +10,49 @@ interface ShippingRate {
   minOrderEurCents: number; estimatedDays?: string; isPickup: boolean; active: boolean;
 }
 
+const FALLBACK_SHIPPING_RATES: ShippingRate[] = [
+  {
+    id: "standard",
+    name: "Envío estándar",
+    description: "Península",
+    priceEurCents: 495,
+    minOrderEurCents: 0,
+    estimatedDays: "2-3",
+    isPickup: false,
+    active: true,
+  },
+  {
+    id: "international",
+    name: "Envío internacional",
+    description: "Europa",
+    priceEurCents: 1495,
+    minOrderEurCents: 0,
+    estimatedDays: "5-8",
+    isPickup: false,
+    active: true,
+  },
+  {
+    id: "islands",
+    name: "Envío islas",
+    description: "Baleares y Canarias",
+    priceEurCents: 995,
+    minOrderEurCents: 0,
+    estimatedDays: "3-6",
+    isPickup: false,
+    active: true,
+  },
+  {
+    id: "pickup",
+    name: "Recogida en tienda",
+    description: "Sin gastos de envío",
+    priceEurCents: 0,
+    minOrderEurCents: 0,
+    estimatedDays: "0",
+    isPickup: true,
+    active: true,
+  },
+];
+
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQty, total, count } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -26,7 +69,8 @@ export function CartDrawer() {
   }, [isOpen]);
 
   const subtotalCents = Math.round(total * 100);
-  const eligibleRates = shippingRates.filter(r => subtotalCents >= r.minOrderEurCents);
+  const availableRates = shippingRates.length > 0 ? shippingRates : FALLBACK_SHIPPING_RATES;
+  const eligibleRates = availableRates.filter(r => subtotalCents >= r.minOrderEurCents);
 
   useEffect(() => {
     if (eligibleRates.length === 0) return;
@@ -36,8 +80,7 @@ export function CartDrawer() {
   }, [eligibleRates.map(r => r.id).join(','), selectedRateId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedRate = eligibleRates.find(r => r.id === selectedRateId) ?? null;
-  const fallbackShippingCents = subtotalCents >= 6500 ? 0 : 495;
-  const shippingCostEur = (selectedRate?.priceEurCents ?? fallbackShippingCents) / 100;
+  const shippingCostEur = (selectedRate?.priceEurCents ?? 0) / 100;
   const grandTotal = total + shippingCostEur;
 
   const handleCheckout = async () => {
@@ -368,9 +411,9 @@ export function CartDrawer() {
                               <p style={{ fontFamily: FONT, fontSize: "0.72rem", color: "#ffffff", margin: 0, lineHeight: 1.3 }}>
                                 {rate.name}
                               </p>
-                              {rate.estimatedDays && (
+                              {(rate.description || rate.estimatedDays) && (
                                 <p style={{ fontFamily: FONT, fontSize: "0.6rem", color: "rgba(255,255,255,0.3)", margin: "0.15rem 0 0", letterSpacing: "0.04em" }}>
-                                  {rate.estimatedDays} días hábiles
+                                  {[rate.description, rate.estimatedDays ? `${rate.estimatedDays} días hábiles` : ""].filter(Boolean).join(" · ")}
                                 </p>
                               )}
                             </div>
@@ -387,20 +430,10 @@ export function CartDrawer() {
                         </label>
                       ))}
                     </div>
-                  </div>
-                ) : shippingRates.length === 0 ? (
-                  /* Fallback when no rates in DB */
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                    <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>Envío</span>
-                    {fallbackShippingCents === 0 ? (
-                      <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: GOLD }}>Gratis</span>
-                    ) : (
-                      <div style={{ textAlign: "right" }}>
-                        <span style={{ fontFamily: FONT, fontSize: "0.72rem", color: "#ffffff" }}>{(fallbackShippingCents / 100).toFixed(2)}€</span>
-                        <p style={{ fontFamily: FONT, fontSize: "0.62rem", color: GOLD, margin: "0.2rem 0 0" }}>
-                          Gratis a partir de 65€ — te faltan {(65 - total).toFixed(0)}€
-                        </p>
-                      </div>
+                    {selectedRate && (
+                      <p style={{ fontFamily: FONT, fontSize: "0.6rem", color: "rgba(255,255,255,0.28)", margin: "0.55rem 0 0", letterSpacing: "0.04em" }}>
+                        Opción elegida: {selectedRate.name}
+                      </p>
                     )}
                   </div>
                 ) : null}

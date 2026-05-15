@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         category: true, imageUrl: true, publishedAt: true,
       },
     });
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json(posts);
   }
 
@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       where: { slug, status: 'published' },
     });
     if (!post) return res.status(404).json({ error: 'Post not found' });
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json(post);
   }
 

@@ -5,13 +5,20 @@ import { CATALOG, FREE_SHIPPING_THRESHOLD_CENTS } from "./_lib/products.js";
 import { setCors, handlePreflight } from "./_lib/cors.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
+  apiVersion: "2026-04-22.dahlia",
 });
 
 interface CartItem {
   id: string;
   quantity: number;
 }
+
+const FALLBACK_SHIPPING_RATES = [
+  { id: "standard", name: "Envío estándar", priceEurCents: 495 },
+  { id: "international", name: "Envío internacional", priceEurCents: 1495 },
+  { id: "islands", name: "Envío islas", priceEurCents: 995 },
+  { id: "pickup", name: "Recogida en tienda", priceEurCents: 0 },
+] as const;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(res);
@@ -60,9 +67,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         shippingName = rate.name;
         shippingCents = rate.priceEurCents;
       } else {
-        shippingCents = subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS ? 0 : 495;
-        shippingName =
-          shippingCents === 0 ? "Envío gratuito" : "Envío estándar (2–3 días hábiles)";
+        const fallbackRate = FALLBACK_SHIPPING_RATES.find((fallback) => fallback.id === shippingRateId);
+        shippingCents = fallbackRate?.priceEurCents ?? (subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS ? 0 : 495);
+        shippingName = fallbackRate?.name ?? (shippingCents === 0 ? "Envío gratuito" : "Envío estándar");
       }
     } else {
       shippingCents = subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS ? 0 : 495;

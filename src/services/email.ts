@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RESEND_API_URL = "https://api.resend.com/emails";
-const FROM_ADDRESS = "Sumo Reishi <onboarding@resend.dev>";
+const FROM_ADDRESS = process.env.RESEND_FROM ?? "Sumo Reishi <onboarding@resend.dev>";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "hola@sumoreishi.com";
 
 interface OrderItem {
@@ -44,8 +44,35 @@ async function sendEmail(payload: {
 
   if (!response.ok) {
     const body = await response.text();
+    console.error("[email] Resend rejected email:", response.status, body);
     throw new Error(`Resend error ${response.status}: ${body}`);
   }
+
+  console.log("[email] Sent:", payload.subject, "→", payload.to);
+}
+
+// ─── Notificación de formulario de contacto ─────────────────────────────────
+
+export async function sendContactNotificationToAdmin(params: {
+  name: string;
+  email: string;
+  message: string;
+}): Promise<void> {
+  const html = `
+    <div style="font-family:Helvetica Neue,Arial,sans-serif;max-width:560px;margin:0 auto;color:#0e0e0e">
+      <h2>Nuevo mensaje de contacto</h2>
+      <p><b>Nombre:</b> ${params.name}</p>
+      <p><b>Email:</b> ${params.email}</p>
+      <p><b>Mensaje:</b></p>
+      <p style="white-space:pre-line">${params.message}</p>
+    </div>
+  `;
+
+  await sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Nuevo mensaje de contacto de ${params.name}`,
+    html,
+  });
 }
 
 // ─── Email de confirmación al cliente ────────────────────────────────────────

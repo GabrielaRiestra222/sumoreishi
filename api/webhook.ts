@@ -4,7 +4,7 @@ import { prisma } from "./_lib/prisma.js";
 import { sendOrderConfirmationToCustomer, sendNewOrderNotificationToAdmin } from "../src/services/email.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
+  apiVersion: "2026-04-22.dahlia",
 });
 
 // Vercel no hace bodyParser para esta ruta — necesitamos el raw body
@@ -88,7 +88,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
   });
 
   const customerDetails = fullSession.customer_details;
-  const shippingDetails = fullSession.shipping_details;
+  const shippingDetails = fullSession.collected_information?.shipping_details;
 
   // Actualizar pedido en transacción
   const order = await prisma.$transaction(async (tx) => {
