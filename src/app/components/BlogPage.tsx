@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const FONT_TITLE = '"Manrope","Inter","Helvetica Now",sans-serif';
 const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
@@ -32,7 +33,38 @@ export const POSTS = [
   },
 ];
 
+interface DbPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  category?: string;
+  publishedAt?: string;
+}
+
 export function BlogPage() {
+  const [dbPosts, setDbPosts] = useState<DbPost[]>([]);
+
+  useEffect(() => {
+    fetch("/api/blog/posts")
+      .then((response) => response.ok ? response.json() : [])
+      .then((data: DbPost[]) => setDbPosts(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  const dbSlugs = new Set(dbPosts.map((post) => post.slug));
+  const posts = [
+    ...dbPosts.map((post) => ({
+      slug: post.slug,
+      title: post.title,
+      excerpt: post.excerpt ?? "",
+      date: post.publishedAt ? new Date(post.publishedAt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : "",
+      readTime: "",
+      category: post.category ?? "",
+    })),
+    ...POSTS.filter((post) => !dbSlugs.has(post.slug)),
+  ];
+
   return (
     <div style={{ backgroundColor: "#f5f5f3", minHeight: "100vh", paddingTop: "100px" }}>
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "4rem 2rem 8rem" }}>
@@ -48,7 +80,7 @@ export function BlogPage() {
         </motion.div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-          {POSTS.map((post, i) => (
+          {posts.map((post, i) => (
             <motion.div
               key={post.slug}
               initial={{ opacity: 0, y: 20 }}

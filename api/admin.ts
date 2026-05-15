@@ -69,5 +69,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return h(req, res);
   }
 
+  // Email diagnostics / test
+  if (path === '/email-test' || path === '/email-test/') {
+    const { default: h } = await import('./_admin/email-test.js');
+    return h(req, res);
+  }
+
   return res.status(404).json({ error: 'Admin endpoint not found' });
 }
