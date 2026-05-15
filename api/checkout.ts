@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
-import { prisma } from "./_lib/prisma";
-import { CATALOG, FREE_SHIPPING_THRESHOLD_CENTS } from "./_lib/products";
-import { setCors, handlePreflight } from "./_lib/cors";
+import { prisma } from "./_lib/prisma.js";
+import { CATALOG, FREE_SHIPPING_THRESHOLD_CENTS } from "./_lib/products.js";
+import { setCors, handlePreflight } from "./_lib/cors.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-04-30.basil",

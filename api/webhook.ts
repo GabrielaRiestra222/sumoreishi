@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
-import { prisma } from "./_lib/prisma";
-import { sendOrderConfirmationToCustomer, sendNewOrderNotificationToAdmin } from "../src/services/email";
+import { prisma } from "./_lib/prisma.js";
+import { sendOrderConfirmationToCustomer, sendNewOrderNotificationToAdmin } from "../src/services/email.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-04-30.basil",

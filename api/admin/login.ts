@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { signAdminToken } from "../_lib/auth";
-import { setCors, handlePreflight } from "../_lib/cors";
+import { signAdminToken } from "../_lib/auth.js";
+import { setCors, handlePreflight } from "../_lib/cors.js";
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   setCors(res);
