@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL ?? 'hola@sumoreishi.com';
+  const adminEmail = process.env.ADMIN_EMAIL ?? 'gabriela.riestra.lucas@gmail.com';
   const status = {
     hasResendApiKey: Boolean(process.env.RESEND_API_KEY),
     adminEmail: maskEmail(adminEmail),

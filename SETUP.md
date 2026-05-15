@@ -23,7 +23,7 @@ Añadir en Vercel → Settings → Environment Variables:
 | `STRIPE_WEBHOOK_SECRET` | Secret del webhook de Stripe (whsec_...) | Sí |
 | `ADMIN_PASSWORD` | Contraseña del panel /admin | Sí |
 | `ADMIN_JWT_SECRET` | String aleatorio ≥32 chars para firmar tokens | Sí |
-| `ADMIN_EMAIL` | Email que recibe notificaciones de nuevos pedidos | Sí |
+| `ADMIN_EMAIL` | Email que recibe notificaciones de nuevos pedidos (`gabriela.riestra.lucas@gmail.com`) | Sí |
 | `RESEND_API_KEY` | API key de Resend (re_...) | No* |
 
 *Sin RESEND_API_KEY los emails se omiten sin error. La tienda funciona igualmente.

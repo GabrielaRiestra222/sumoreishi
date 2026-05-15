@@ -8,7 +8,7 @@
 
 const RESEND_API_URL = "https://api.resend.com/emails";
 const FROM_ADDRESS = process.env.RESEND_FROM ?? "Sumo Reishi <onboarding@resend.dev>";
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "hola@sumoreishi.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "gabriela.riestra.lucas@gmail.com";
 
 interface OrderItem {
   name: string;
