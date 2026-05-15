@@ -1,297 +1,291 @@
-import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { useRequireAdmin, useAdminFetch } from "./useAdminAuth";
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Package, User, MapPin } from 'lucide-react';
 
-const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
-const GOLD = "#c9a84c";
+type OrderStatus = 'PENDING' | 'PAID' | 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
+type ShipmentStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'IN_TRANSIT' | 'DELIVERED' | 'FAILED' | 'RETURNED';
 
-const STATUS_OPTIONS = ["PENDING", "PAID", "PREPARING", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED"];
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: "Pendiente", PAID: "Pagado", PREPARING: "Preparando",
-  SHIPPED: "Enviado", DELIVERED: "Entregado", CANCELLED: "Cancelado", REFUNDED: "Reembolsado",
-};
-const SHIPMENT_STATUS_OPTIONS = ["PENDING", "PROCESSING", "SHIPPED", "IN_TRANSIT", "DELIVERED", "FAILED", "RETURNED"];
-
-interface Address { line1: string; line2?: string; city: string; state?: string; postalCode: string; country: string; }
 interface Order {
-  id: string; status: string; totalEurCents: number; currency: string;
-  createdAt: string; updatedAt: string; internalNotes?: string;
-  stripeSessionId?: string;
-  customer?: { id: string; email: string; name?: string; phone?: string };
-  items: Array<{ id: string; productName: string; productFormat: string; quantity: number; unitEurCents: number }>;
-  shippingAddress?: Address; billingAddress?: Address;
-  shipment?: {
-    id: string; status: string; carrier?: string; trackingNumber?: string;
-    shippedAt?: string; estimatedAt?: string; notes?: string;
-  };
-  paymentEvents: Array<{ id: string; type: string; createdAt: string }>;
+  id: string;
+  stripeSessionId: string | null;
+  status: OrderStatus;
+  totalEurCents: number;
+  currency: string;
+  internalNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  customer: {
+    email: string;
+    name: string | null;
+    phone: string | null;
+  } | null;
+  shippingAddress: {
+    line1: string;
+    line2: string | null;
+    city: string;
+    state: string | null;
+    postalCode: string;
+    country: string;
+  } | null;
+  items: Array<{
+    productName: string;
+    productFormat: string;
+    quantity: number;
+    unitEurCents: number;
+  }>;
+  shipment: {
+    status: ShipmentStatus;
+    carrier: string | null;
+    trackingNumber: string | null;
+    shippedAt: string | null;
+  } | null;
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: "1rem" }}>
-      <p style={{ fontSize: "0.58rem", color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>{label}</p>
-      <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.85)" }}>{children}</div>
-    </div>
-  );
-}
+const statusLabels: Record<OrderStatus, string> = {
+  PENDING: 'Pendiente',
+  PAID: 'Pagado',
+  PREPARING: 'Preparando',
+  SHIPPED: 'Enviado',
+  DELIVERED: 'Entregado',
+  CANCELLED: 'Cancelado',
+  REFUNDED: 'Reembolsado'
+};
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ border: "1px solid rgba(255,255,255,0.07)", padding: "1.5rem", marginBottom: "1rem" }}>
-      <h2 style={{ fontSize: "0.65rem", letterSpacing: "0.15em", textTransform: "uppercase", color: GOLD, margin: "0 0 1.25rem", fontWeight: 400 }}>{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-export function AdminOrderDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const ready = useRequireAdmin();
-  const adminFetch = useAdminFetch();
-
+export default function AdminOrderDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
-  // Editable state
-  const [status, setStatus] = useState("");
-  const [internalNotes, setInternalNotes] = useState("");
-  const [carrier, setCarrier] = useState("");
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [shipmentStatus, setShipmentStatus] = useState("");
-  const [shipmentNotes, setShipmentNotes] = useState("");
+  // Estados editables
+  const [status, setStatus] = useState<OrderStatus>('PENDING');
+  const [carrier, setCarrier] = useState('');
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [internalNotes, setInternalNotes] = useState('');
 
   useEffect(() => {
-    if (!ready || !id) return;
-    adminFetch(`/api/admin/orders/${id}`)
-      .then((r) => r.json())
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      navigate('/admin');
+      return;
+    }
+
+    fetch(`/api/admin/orders/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(r => r.json())
       .then((data: Order) => {
         setOrder(data);
         setStatus(data.status);
-        setInternalNotes(data.internalNotes ?? "");
-        setCarrier(data.shipment?.carrier ?? "");
-        setTrackingNumber(data.shipment?.trackingNumber ?? "");
-        setShipmentStatus(data.shipment?.status ?? "PENDING");
-        setShipmentNotes(data.shipment?.notes ?? "");
+        setCarrier(data.shipment?.carrier || '');
+        setTrackingNumber(data.shipment?.trackingNumber || '');
+        setInternalNotes(data.internalNotes || '');
+        setLoading(false);
       })
-      .finally(() => setLoading(false));
-  }, [ready, id, adminFetch]);
+      .catch(() => setLoading(false));
+  }, [id, navigate]);
 
-  const handleSave = async () => {
-    if (!id) return;
-    setSaving(true);
-    setSaved(false);
+  const handleUpdate = async () => {
+    const token = localStorage.getItem('adminToken');
+    setUpdating(true);
+
     try {
-      const res = await adminFetch(`/api/admin/orders/${id}`, {
-        method: "PATCH",
+      const response = await fetch(`/api/admin/orders/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           status,
-          internalNotes,
-          shipment: { carrier, trackingNumber, status: shipmentStatus, notes: shipmentNotes },
-        }),
+          carrier: carrier || null,
+          trackingNumber: trackingNumber || null,
+          internalNotes: internalNotes || null
+        })
       });
-      const updated = await res.json() as Order;
-      setOrder(updated);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+
+      if (response.ok) {
+        const updated = await response.json() as Order;
+        setOrder(updated);
+        alert('Pedido actualizado correctamente');
+      } else {
+        alert('Error al actualizar el pedido');
+      }
+    } catch {
+      alert('Error al actualizar el pedido');
     } finally {
-      setSaving(false);
+      setUpdating(false);
     }
   };
 
-  if (!ready || loading) {
+  if (loading) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0c0c0c", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.2)", fontFamily: FONT, fontSize: "0.75rem" }}>
-        Cargando…
+      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
+        <div className="text-xl">Cargando...</div>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0c0c0c", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.2)", fontFamily: FONT, fontSize: "0.75rem" }}>
-        Pedido no encontrado
+      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
+        <div className="text-xl">Pedido no encontrado</div>
       </div>
     );
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "0.6rem 0.75rem",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    color: "#fff", fontFamily: FONT, fontSize: "0.8rem",
-    outline: "none", boxSizing: "border-box",
-  };
-
-  const selectStyle: React.CSSProperties = { ...inputStyle, cursor: "pointer" };
-
   return (
-    <div style={{ minHeight: "100vh", background: "#0c0c0c", fontFamily: FONT, color: "#fff" }}>
-      {/* Header */}
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "1.25rem 2rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-        <Link to="/admin/orders" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", fontSize: "0.7rem" }}>← Pedidos</Link>
-        <span style={{ color: "rgba(255,255,255,0.1)" }}>|</span>
-        <p style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.35)", margin: 0, fontFamily: "monospace" }}>{order.id}</p>
-      </div>
+    <div className="min-h-screen bg-zinc-950 text-white p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <button
+          onClick={() => navigate('/admin/orders')}
+          className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition"
+        >
+          <ArrowLeft size={20} />
+          Volver a pedidos
+        </button>
 
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-
-          {/* Columna izquierda */}
+        <div className="flex items-start justify-between mb-8">
           <div>
-            <Section title="Pedido">
-              <Field label="ID">{order.id}</Field>
-              <Field label="Fecha">{new Date(order.createdAt).toLocaleString("es-ES")}</Field>
-              <Field label="Total">{(order.totalEurCents / 100).toFixed(2)} €</Field>
-              {order.stripeSessionId && (
-                <Field label="Stripe Session">
-                  <span style={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(255,255,255,0.4)" }}>
-                    {order.stripeSessionId}
-                  </span>
-                </Field>
-              )}
-              <Field label="Estado del pedido">
-                <select value={status} onChange={(e) => setStatus(e.target.value)} style={selectStyle}>
-                  {STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Notas internas">
-                <textarea
-                  value={internalNotes}
-                  onChange={(e) => setInternalNotes(e.target.value)}
-                  rows={3}
-                  style={{ ...inputStyle, resize: "vertical" }}
-                  placeholder="Solo visible en el panel…"
-                />
-              </Field>
-            </Section>
+            <h1 className="text-3xl font-bold mb-2">Pedido #{order.id.slice(0, 8)}</h1>
+            <p className="text-zinc-400">{new Date(order.createdAt).toLocaleString('es-ES')}</p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-yellow-500">
+              {(order.totalEurCents / 100).toFixed(2)} €
+            </div>
+            <div className="text-sm text-zinc-400 mt-1">{statusLabels[order.status]}</div>
+          </div>
+        </div>
 
-            <Section title="Productos">
-              {order.items.map((item) => (
-                <div key={item.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.75rem", paddingBottom: "0.75rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div>
-                    <p style={{ margin: 0, fontSize: "0.8rem" }}>{item.productName}</p>
-                    <p style={{ margin: "0.2rem 0 0", fontSize: "0.65rem", color: "rgba(255,255,255,0.3)" }}>{item.productFormat}</p>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <p style={{ margin: 0, fontSize: "0.75rem" }}>×{item.quantity}</p>
-                    <p style={{ margin: "0.2rem 0 0", fontSize: "0.75rem", color: GOLD }}>{((item.unitEurCents * item.quantity) / 100).toFixed(2)} €</p>
+        {/* Estado y Edición */}
+        <div className="bg-zinc-900 rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Package size={20} />
+            Gestión del Pedido
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm text-zinc-400 mb-2">Estado del pedido</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as OrderStatus)}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded px-4 py-2 text-white"
+              >
+                <option value="PENDING">Pendiente</option>
+                <option value="PAID">Pagado</option>
+                <option value="PREPARING">Preparando</option>
+                <option value="SHIPPED">Enviado</option>
+                <option value="DELIVERED">Entregado</option>
+                <option value="CANCELLED">Cancelado</option>
+                <option value="REFUNDED">Reembolsado</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm text-zinc-400 mb-2">Transportista</label>
+              <input
+                type="text"
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+                placeholder="Ej: Correos, MRW, SEUR..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded px-4 py-2 text-white"
+              />
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm text-zinc-400 mb-2">Número de seguimiento</label>
+            <input
+              type="text"
+              value={trackingNumber}
+              onChange={(e) => setTrackingNumber(e.target.value)}
+              placeholder="Ej: ABC123456789"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded px-4 py-2 text-white"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm text-zinc-400 mb-2">Notas internas</label>
+            <textarea
+              value={internalNotes}
+              onChange={(e) => setInternalNotes(e.target.value)}
+              placeholder="Notas privadas sobre este pedido..."
+              rows={3}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded px-4 py-2 text-white"
+            />
+          </div>
+
+          <button
+            onClick={() => { void handleUpdate(); }}
+            disabled={updating}
+            className="w-full bg-yellow-500 text-black font-semibold py-3 rounded hover:bg-yellow-400 transition disabled:opacity-50"
+          >
+            {updating ? 'Guardando...' : 'Guardar Cambios'}
+          </button>
+        </div>
+
+        {/* Productos */}
+        <div className="bg-zinc-900 rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Productos</h2>
+          <div className="space-y-3">
+            {order.items.map((item, i) => (
+              <div key={i} className="flex justify-between items-center py-3 border-b border-zinc-800 last:border-0">
+                <div>
+                  <div className="font-medium">{item.productName}</div>
+                  <div className="text-sm text-zinc-400">{item.productFormat}</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-medium">×{item.quantity}</div>
+                  <div className="text-sm text-zinc-400">
+                    {(item.unitEurCents / 100).toFixed(2)} € c/u
                   </div>
                 </div>
-              ))}
-            </Section>
-
-            <Section title="Historial de pagos">
-              {order.paymentEvents.length === 0 ? (
-                <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem" }}>Sin eventos</p>
-              ) : (
-                order.paymentEvents.map((e) => (
-                  <div key={e.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.68rem" }}>
-                    <span style={{ fontFamily: "monospace", color: "rgba(255,255,255,0.5)" }}>{e.type}</span>
-                    <span style={{ color: "rgba(255,255,255,0.25)" }}>{new Date(e.createdAt).toLocaleString("es-ES")}</span>
-                  </div>
-                ))
-              )}
-            </Section>
-          </div>
-
-          {/* Columna derecha */}
-          <div>
-            <Section title="Cliente">
-              {order.customer ? (
-                <>
-                  <Field label="Email">{order.customer.email}</Field>
-                  {order.customer.name && <Field label="Nombre">{order.customer.name}</Field>}
-                  {order.customer.phone && <Field label="Teléfono">{order.customer.phone}</Field>}
-                </>
-              ) : (
-                <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem" }}>Sin datos de cliente</p>
-              )}
-            </Section>
-
-            <Section title="Dirección de envío">
-              {order.shippingAddress ? (
-                <>
-                  <Field label="Dirección">
-                    {order.shippingAddress.line1}
-                    {order.shippingAddress.line2 && <><br />{order.shippingAddress.line2}</>}
-                  </Field>
-                  <Field label="Ciudad / CP">
-                    {order.shippingAddress.city}, {order.shippingAddress.postalCode}
-                  </Field>
-                  <Field label="País">{order.shippingAddress.country}</Field>
-                </>
-              ) : (
-                <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem" }}>Sin dirección</p>
-              )}
-            </Section>
-
-            <Section title="Envío">
-              <Field label="Estado del envío">
-                <select value={shipmentStatus} onChange={(e) => setShipmentStatus(e.target.value)} style={selectStyle}>
-                  {SHIPMENT_STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Transportista">
-                <input
-                  type="text"
-                  value={carrier}
-                  onChange={(e) => setCarrier(e.target.value)}
-                  style={inputStyle}
-                  placeholder="Correos, MRW, GLS…"
-                />
-              </Field>
-              <Field label="Número de tracking">
-                <input
-                  type="text"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  style={inputStyle}
-                  placeholder="ES123456789CN"
-                />
-              </Field>
-              <Field label="Notas de envío">
-                <textarea
-                  value={shipmentNotes}
-                  onChange={(e) => setShipmentNotes(e.target.value)}
-                  rows={2}
-                  style={{ ...inputStyle, resize: "vertical" }}
-                />
-              </Field>
-            </Section>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Guardar */}
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "0.5rem" }}>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            style={{
-              padding: "0.85rem 2.5rem",
-              background: saving ? "rgba(255,255,255,0.3)" : "#fff",
-              color: "#0e0e0e",
-              border: "none",
-              fontFamily: FONT,
-              fontWeight: 700,
-              fontSize: "0.65rem",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              cursor: saving ? "not-allowed" : "pointer",
-            }}
-          >
-            {saving ? "Guardando…" : "Guardar cambios"}
-          </button>
-          {saved && (
-            <span style={{ fontSize: "0.7rem", color: "#22c55e" }}>✓ Guardado</span>
-          )}
-        </div>
+        {/* Cliente */}
+        {order.customer && (
+          <div className="bg-zinc-900 rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <User size={20} />
+              Cliente
+            </h2>
+            <div className="space-y-2">
+              <div><span className="text-zinc-400">Email:</span> {order.customer.email}</div>
+              {order.customer.name && (
+                <div><span className="text-zinc-400">Nombre:</span> {order.customer.name}</div>
+              )}
+              {order.customer.phone && (
+                <div><span className="text-zinc-400">Teléfono:</span> {order.customer.phone}</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Dirección de envío */}
+        {order.shippingAddress && (
+          <div className="bg-zinc-900 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <MapPin size={20} />
+              Dirección de Envío
+            </h2>
+            <div className="text-zinc-300">
+              <div>{order.shippingAddress.line1}</div>
+              {order.shippingAddress.line2 && <div>{order.shippingAddress.line2}</div>}
+              <div>
+                {order.shippingAddress.postalCode} {order.shippingAddress.city}
+              </div>
+              {order.shippingAddress.state && <div>{order.shippingAddress.state}</div>}
+              <div>{order.shippingAddress.country}</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

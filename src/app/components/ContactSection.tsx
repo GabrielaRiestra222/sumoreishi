@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 export function ContactSection() {
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "" });
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -18,9 +19,25 @@ export function ContactSection() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    if (!form.nombre || !form.email) return;
-    setSent(true);
+  const handleSubmit = async () => {
+    if (!form.nombre || !form.email || sending) return;
+    setSending(true);
+    try {
+      await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.nombre,
+          email: form.email,
+          message: form.telefono ? `Teléfono: ${form.telefono}` : '(sin teléfono)',
+        }),
+      });
+    } catch {
+      // silencioso — mostramos confirmación igualmente
+    } finally {
+      setSending(false);
+      setSent(true);
+    }
   };
 
   const fields = [
@@ -200,7 +217,7 @@ export function ContactSection() {
               ))}
 
               <button
-                onClick={handleSubmit}
+                onClick={() => { void handleSubmit(); }}
                 style={{
                   marginTop: "2.5rem",
                   padding: "1rem 2rem",
@@ -226,7 +243,7 @@ export function ContactSection() {
                   e.currentTarget.style.color = "#1a1a1a";
                 }}
               >
-                Enviar mensaje
+                {sending ? 'Enviando…' : 'Enviar mensaje'}
               </button>
 
               <p style={{

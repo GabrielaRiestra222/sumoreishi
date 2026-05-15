@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RESEND_API_URL = "https://api.resend.com/emails";
-const FROM_ADDRESS = "SumoReishi <pedidos@sumoreishi.com>";
+const FROM_ADDRESS = "Sumo Reishi <onboarding@resend.dev>";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "hola@sumoreishi.com";
 
 interface OrderItem {

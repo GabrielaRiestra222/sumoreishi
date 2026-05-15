@@ -20,7 +20,7 @@ import { BlogPostPage } from "./components/BlogPostPage";
 // Admin
 import { AdminLoginPage } from "./admin/AdminLoginPage";
 import { AdminOrdersPage } from "./admin/AdminOrdersPage";
-import { AdminOrderDetailPage } from "./admin/AdminOrderDetailPage";
+import AdminOrderDetailPage from "./admin/AdminOrderDetailPage";
 
 // Secciones home
 import { HeroSection } from "./components/HeroSection";

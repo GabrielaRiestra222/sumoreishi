@@ -1,108 +1,98 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { prisma } from "../../_lib/prisma.js";
-import { requireAdmin } from "../../_lib/auth.js";
-import { setCors, handlePreflight } from "../../_lib/cors.js";
-import { sendTrackingNotificationToCustomer } from "../../../src/services/email.js";
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { prisma } from '../../_lib/prisma.js';
+import { setCors } from '../../_lib/cors.js';
+import { verifyAdminToken } from '../../_lib/auth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(res);
-  if (handlePreflight(req, res)) return;
-  if (!requireAdmin(req, res)) return;
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const id = req.query.id as string;
-
-  // ── GET /api/admin/orders/:id ─────────────────────────────────────────────
-  if (req.method === "GET") {
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        customer: true,
-        items: { include: { product: true } },
-        shippingAddress: true,
-        billingAddress: true,
-        paymentEvents: { orderBy: { createdAt: "desc" } },
-        shipment: true,
-      },
-    });
-
-    if (!order) return res.status(404).json({ error: "Pedido no encontrado" });
-    return res.status(200).json(order);
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token || !verifyAdminToken(token)) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // ── PATCH /api/admin/orders/:id ───────────────────────────────────────────
-  if (req.method === "PATCH") {
-    const body = req.body as {
-      status?: string;
-      internalNotes?: string;
-      shipment?: {
-        carrier?: string;
-        trackingNumber?: string;
-        status?: string;
-        shippedAt?: string;
-        estimatedAt?: string;
-        notes?: string;
-      };
-    };
+  const { id } = req.query;
 
-    const orderUpdate: Record<string, unknown> = {};
-    if (body.status) orderUpdate.status = body.status;
-    if (body.internalNotes !== undefined) orderUpdate.internalNotes = body.internalNotes;
-
-    let updatedOrder = await prisma.order.update({
-      where: { id },
-      data: orderUpdate,
-      include: { customer: true, shipment: true },
-    });
-
-    // Actualizar envío si se proporcionó
-    if (body.shipment) {
-      const prevShipment = updatedOrder.shipment;
-      const shipData = {
-        ...(body.shipment.carrier !== undefined && { carrier: body.shipment.carrier }),
-        ...(body.shipment.trackingNumber !== undefined && { trackingNumber: body.shipment.trackingNumber }),
-        ...(body.shipment.status !== undefined && { status: body.shipment.status as never }),
-        ...(body.shipment.shippedAt && { shippedAt: new Date(body.shipment.shippedAt) }),
-        ...(body.shipment.estimatedAt && { estimatedAt: new Date(body.shipment.estimatedAt) }),
-        ...(body.shipment.notes !== undefined && { notes: body.shipment.notes }),
-      };
-
-      await prisma.shipment.upsert({
-        where: { orderId: id },
-        update: shipData,
-        create: { orderId: id, ...shipData },
+  if (req.method === 'GET') {
+    try {
+      const order = await prisma.order.findUnique({
+        where: { id: id as string },
+        include: {
+          customer: true,
+          shippingAddress: true,
+          items: true,
+          shipment: true
+        }
       });
 
-      // Enviar email de tracking si se añade número por primera vez
-      const trackingAdded =
-        body.shipment.trackingNumber &&
-        body.shipment.trackingNumber !== prevShipment?.trackingNumber;
-
-      if (trackingAdded && updatedOrder.customer?.email) {
-        void sendTrackingNotificationToCustomer({
-          to: updatedOrder.customer.email,
-          customerName: updatedOrder.customer.name ?? "Cliente",
-          orderId: id,
-          carrier: body.shipment.carrier ?? prevShipment?.carrier ?? "",
-          trackingNumber: body.shipment.trackingNumber!,
-        }).catch((e) => console.error("[email] Tracking notification failed:", e));
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
       }
+
+      return res.status(200).json(order);
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      return res.status(500).json({ error: 'Internal server error' });
     }
-
-    // Refetch actualizado
-    updatedOrder = await prisma.order.findUniqueOrThrow({
-      where: { id },
-      include: {
-        customer: true,
-        items: { include: { product: true } },
-        shippingAddress: true,
-        billingAddress: true,
-        paymentEvents: { orderBy: { createdAt: "desc" } },
-        shipment: true,
-      },
-    });
-
-    return res.status(200).json(updatedOrder);
   }
 
-  return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === 'PATCH') {
+    try {
+      const { status, carrier, trackingNumber, internalNotes } = req.body as {
+        status?: string;
+        carrier?: string | null;
+        trackingNumber?: string | null;
+        internalNotes?: string | null;
+      };
+
+      // Actualizar pedido
+      await prisma.order.update({
+        where: { id: id as string },
+        data: {
+          ...(status && { status: status as never }),
+          internalNotes: internalNotes ?? undefined,
+        }
+      });
+
+      // Actualizar o crear shipment si hay datos de envío
+      if (carrier !== undefined || trackingNumber !== undefined) {
+        const shipmentData: Record<string, unknown> = {};
+        if (carrier !== undefined) shipmentData.carrier = carrier;
+        if (trackingNumber !== undefined) shipmentData.trackingNumber = trackingNumber;
+        if (status === 'SHIPPED') {
+          shipmentData.status = 'SHIPPED';
+          shipmentData.shippedAt = new Date();
+        }
+
+        await prisma.shipment.upsert({
+          where: { orderId: id as string },
+          update: shipmentData,
+          create: {
+            orderId: id as string,
+            ...shipmentData,
+            status: (status === 'SHIPPED' ? 'SHIPPED' : 'PENDING') as never
+          }
+        });
+      }
+
+      // Devolver pedido actualizado con todas las relaciones
+      const updatedOrder = await prisma.order.findUnique({
+        where: { id: id as string },
+        include: {
+          customer: true,
+          shippingAddress: true,
+          items: true,
+          shipment: true
+        }
+      });
+
+      return res.status(200).json(updatedOrder);
+    } catch (error) {
+      console.error('Error updating order:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
 }
