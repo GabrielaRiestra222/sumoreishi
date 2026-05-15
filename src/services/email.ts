@@ -9,7 +9,9 @@
 const RESEND_API_URL = "https://api.resend.com/emails";
 const FROM_ADDRESS = process.env.RESEND_FROM ?? "Sumo Reishi <onboarding@resend.dev>";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "gabriela.riestra.lucas@gmail.com";
+const RESEND_TEST_EMAIL = process.env.RESEND_TEST_EMAIL ?? "gabriela.riestra.lucas@gmail.com";
 const USING_RESEND_TEST_DOMAIN = FROM_ADDRESS.includes("@resend.dev");
+const ADMIN_NOTIFICATION_EMAIL = USING_RESEND_TEST_DOMAIN ? RESEND_TEST_EMAIL : ADMIN_EMAIL;
 
 interface OrderItem {
   name: string;
@@ -29,12 +31,14 @@ async function sendEmail(payload: {
     return;
   }
 
-  if (USING_RESEND_TEST_DOMAIN && payload.to !== ADMIN_EMAIL) {
+  if (USING_RESEND_TEST_DOMAIN && payload.to !== RESEND_TEST_EMAIL) {
     console.log(
       "[email] Email omitido: onboarding@resend.dev solo puede enviar al email de la cuenta Resend.",
       payload.subject,
       "→",
-      payload.to
+      payload.to,
+      "Permitido:",
+      RESEND_TEST_EMAIL
     );
     return;
   }
@@ -80,7 +84,7 @@ export async function sendContactNotificationToAdmin(params: {
   `;
 
   await sendEmail({
-    to: ADMIN_EMAIL,
+    to: ADMIN_NOTIFICATION_EMAIL,
     subject: `Nuevo mensaje de contacto de ${params.name}`,
     html,
   });
@@ -159,7 +163,7 @@ export async function sendNewOrderNotificationToAdmin(params: {
   `;
 
   await sendEmail({
-    to: ADMIN_EMAIL,
+    to: ADMIN_NOTIFICATION_EMAIL,
     subject: `[SumoReishi] Nuevo pedido — ${(params.totalEurCents / 100).toFixed(2)} €`,
     html,
   });

@@ -18,11 +18,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  const resendFrom = process.env.RESEND_FROM ?? 'Sumo Reishi <onboarding@resend.dev>';
   const adminEmail = process.env.ADMIN_EMAIL ?? 'gabriela.riestra.lucas@gmail.com';
+  const resendTestEmail = process.env.RESEND_TEST_EMAIL ?? 'gabriela.riestra.lucas@gmail.com';
+  const notificationEmail = resendFrom.includes('@resend.dev') ? resendTestEmail : adminEmail;
   const status = {
     hasResendApiKey: Boolean(process.env.RESEND_API_KEY),
     adminEmail: maskEmail(adminEmail),
-    resendFrom: process.env.RESEND_FROM ?? 'Sumo Reishi <onboarding@resend.dev>',
+    notificationEmail: maskEmail(notificationEmail),
+    resendFrom,
   };
 
   if (req.method === 'GET') {

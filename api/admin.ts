@@ -10,6 +10,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const requestUrl = new URL(req.url ?? '/api/admin', `https://${req.headers.host ?? 'localhost'}`);
   const path = requestUrl.pathname.replace(/^\/api\/admin/, '') || '/';
   const isLoginRequest = path === '/login';
+  const setRouteId = (id: string | undefined) => {
+    if (id) {
+      (req.query as Record<string, string>).id = decodeURIComponent(id);
+    }
+  };
 
   if (!isLoginRequest && !verifyAdminToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -29,6 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Order detail /orders/:id
   if (path.match(/^\/orders\/[^/]+$/)) {
+    setRouteId(path.split('/')[2]);
     const { default: h } = await import('./_admin/orders/[id].js');
     return h(req, res);
   }
@@ -53,6 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Blog post detail /blog/:id
   if (path.match(/^\/blog\/[^/]+$/)) {
+    setRouteId(path.split('/')[2]);
     const { default: h } = await import('./_admin/blog/[id].js');
     return h(req, res);
   }

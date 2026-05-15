@@ -13,6 +13,11 @@ interface PostForm {
 const EMPTY_FORM: PostForm = { title: '', slug: '', content: '', excerpt: '', imageUrl: '', category: '', status: 'draft' };
 const token = () => localStorage.getItem('adminToken') ?? '';
 
+async function readError(response: Response) {
+  const data = await response.json().catch(() => ({})) as { error?: string };
+  return data.error ?? `Error ${response.status}`;
+}
+
 function slugify(str: string) {
   return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
@@ -39,6 +44,10 @@ export function AdminBlogPage() {
 
   const openEdit = async (id: string) => {
     const res = await fetch(`/api/admin/blog/${id}`, { headers: { Authorization: `Bearer ${token()}` } });
+    if (!res.ok) {
+      alert(`Error al abrir el post: ${await readError(res)}`);
+      return;
+    }
     const data = await res.json() as PostForm & { id: string };
     setEditing({ id, form: { title: data.title, slug: data.slug, content: data.content, excerpt: data.excerpt ?? '', imageUrl: data.imageUrl ?? '', category: data.category ?? '', status: data.status } });
   };
@@ -54,7 +63,7 @@ export function AdminBlogPage() {
         headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(editing.form),
       });
-      if (!res.ok) { alert('Error al guardar'); return; }
+      if (!res.ok) { alert(`Error al guardar: ${await readError(res)}`); return; }
       setEditing(null);
       load();
     } finally {
@@ -64,7 +73,11 @@ export function AdminBlogPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Eliminar este post?')) return;
-    await fetch(`/api/admin/blog/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+    const res = await fetch(`/api/admin/blog/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+    if (!res.ok) {
+      alert(`Error al eliminar: ${await readError(res)}`);
+      return;
+    }
     load();
   };
 

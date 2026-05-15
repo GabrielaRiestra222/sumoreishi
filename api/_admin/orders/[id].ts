@@ -3,6 +3,17 @@ import { prisma } from '../../_lib/prisma.js';
 import { setCors } from '../../_lib/cors.js';
 import { verifyAdminToken } from '../../_lib/auth.js';
 
+function getRouteId(req: VercelRequest): string {
+  const queryId = req.query.id;
+  if (typeof queryId === 'string' && queryId) return queryId;
+  if (Array.isArray(queryId) && queryId[0]) return queryId[0];
+
+  const requestUrl = new URL(req.url ?? '/api/admin/orders', `https://${req.headers.host ?? 'localhost'}`);
+  const path = requestUrl.pathname.replace(/^\/api\/admin/, '');
+  const idFromPath = path.match(/^\/orders\/([^/]+)$/)?.[1];
+  return idFromPath ? decodeURIComponent(idFromPath) : '';
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -12,7 +23,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { id } = req.query;
+  const id = getRouteId(req);
+  if (!id) return res.status(400).json({ error: 'Order id requerido' });
 
   if (req.method === 'GET') {
     try {
