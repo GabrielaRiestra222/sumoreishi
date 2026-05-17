@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       skip,
       take,
       include: {
-        customer: { include: { _count: { select: { orders: true } } } },
+        customer: true,
         items: { include: { product: true } },
         shipment: true,
       },
@@ -33,5 +33,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     prisma.order.count({ where }),
   ]);
 
-  return res.status(200).json({ orders, total, page: Number(page), limit: take });
+  const customerIds = orders
+    .map((order) => order.customerId)
+    .filter((id): id is string => Boolean(id));
+
+  const counts = customerIds.length
+    ? await prisma.order.groupBy({
+        by: ["customerId"],
+        where: { customerId: { in: customerIds } },
+        _count: { _all: true },
+      })
+    : [];
+
+  const countByCustomerId = new Map(
+    counts.map((count) => [count.customerId, count._count._all])
+  );
+
+  const ordersWithCustomerCounts = orders.map((order) => ({
+    ...order,
+    customer: order.customer
+      ? {
+          ...order.customer,
+          orderCount: countByCustomerId.get(order.customerId ?? "") ?? 1,
+        }
+      : null,
+  }));
+
+  return res.status(200).json({ orders: ordersWithCustomerCounts, total, page: Number(page), limit: take });
 }

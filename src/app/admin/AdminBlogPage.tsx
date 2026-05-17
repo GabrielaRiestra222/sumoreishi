@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Eye, X, Save } from 'lucide-react';
 
 interface Post {
@@ -23,20 +24,33 @@ function slugify(str: string) {
 }
 
 export function AdminBlogPage() {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ id?: string; form: PostForm } | null>(null);
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
+    setError(null);
     fetch('/api/admin/blog', { headers: { Authorization: `Bearer ${token()}` } })
-      .then(r => r.json())
+      .then(async r => {
+        const data = await r.json().catch(() => ({}));
+        if (r.status === 401) {
+          localStorage.removeItem('adminToken');
+          navigate('/admin/login', { replace: true });
+          return [];
+        }
+        if (!r.ok) throw new Error((data as { error?: string }).error ?? `Error ${r.status}`);
+        if (!Array.isArray(data)) throw new Error('Respuesta inesperada al cargar el blog');
+        return data as Post[];
+      })
       .then((data: Post[]) => setPosts(data))
-      .catch(() => {})
+      .catch((err) => setError(err instanceof Error ? err.message : 'No se pudieron cargar los posts'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [navigate]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -44,6 +58,11 @@ export function AdminBlogPage() {
 
   const openEdit = async (id: string) => {
     const res = await fetch(`/api/admin/blog/${id}`, { headers: { Authorization: `Bearer ${token()}` } });
+    if (res.status === 401) {
+      localStorage.removeItem('adminToken');
+      navigate('/admin/login', { replace: true });
+      return;
+    }
     if (!res.ok) {
       alert(`Error al abrir el post: ${await readError(res)}`);
       return;
@@ -104,6 +123,8 @@ export function AdminBlogPage() {
 
       {loading ? (
         <div className="text-center text-zinc-600 py-16 text-sm">Cargando…</div>
+      ) : error ? (
+        <div className="text-center text-red-400 py-16 text-sm">{error}</div>
       ) : posts.length === 0 ? (
         <div className="text-center text-zinc-600 py-16 text-sm">Sin posts todavía</div>
       ) : (

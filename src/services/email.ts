@@ -11,7 +11,12 @@ const FROM_ADDRESS = process.env.RESEND_FROM ?? "Sumo Reishi <onboarding@resend.
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "gabriela.riestra.lucas@gmail.com";
 const RESEND_TEST_EMAIL = process.env.RESEND_TEST_EMAIL ?? "gabriela.riestra.lucas@gmail.com";
 const USING_RESEND_TEST_DOMAIN = FROM_ADDRESS.includes("@resend.dev");
-const ADMIN_NOTIFICATION_EMAIL = USING_RESEND_TEST_DOMAIN ? RESEND_TEST_EMAIL : ADMIN_EMAIL;
+const ADMIN_NOTIFICATION_EMAIL = USING_RESEND_TEST_DOMAIN
+  ? RESEND_TEST_EMAIL
+  : ADMIN_EMAIL.split(",").map((email) => email.trim()).filter(Boolean);
+const PRIMARY_ADMIN_EMAIL = Array.isArray(ADMIN_NOTIFICATION_EMAIL)
+  ? ADMIN_NOTIFICATION_EMAIL[0] ?? ADMIN_EMAIL
+  : ADMIN_NOTIFICATION_EMAIL;
 
 interface OrderItem {
   name: string;
@@ -20,7 +25,7 @@ interface OrderItem {
 }
 
 async function sendEmail(payload: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
 }): Promise<void> {
@@ -133,7 +138,7 @@ export async function sendOrderConfirmationToCustomer(params: {
         </p>
       </div>
       <div style="background:#f9f9f9;padding:24px 32px;text-align:center;font-size:12px;color:#999">
-        <p style="margin:0">¿Dudas? Escríbenos a <a href="mailto:${ADMIN_EMAIL}" style="color:#c9a84c">${ADMIN_EMAIL}</a></p>
+        <p style="margin:0">¿Dudas? Escríbenos a <a href="mailto:${PRIMARY_ADMIN_EMAIL}" style="color:#c9a84c">${PRIMARY_ADMIN_EMAIL}</a></p>
       </div>
     </div>
   `;
@@ -212,7 +217,7 @@ export async function sendTrackingNotificationToCustomer(params: {
         </p>
       </div>
       <div style="background:#f9f9f9;padding:24px 32px;text-align:center;font-size:12px;color:#999">
-        <p style="margin:0">¿Dudas? <a href="mailto:${ADMIN_EMAIL}" style="color:#c9a84c">${ADMIN_EMAIL}</a></p>
+        <p style="margin:0">¿Dudas? <a href="mailto:${PRIMARY_ADMIN_EMAIL}" style="color:#c9a84c">${PRIMARY_ADMIN_EMAIL}</a></p>
       </div>
     </div>
   `;

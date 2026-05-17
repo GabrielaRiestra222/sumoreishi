@@ -14,7 +14,7 @@ const ALL_STATUSES = ['', 'PENDING', 'PAID', 'PREPARING', 'SHIPPED', 'DELIVERED'
 
 interface Order {
   id: string; status: string; totalEurCents: number; createdAt: string;
-  customer?: { email: string; name?: string; phone?: string; _count?: { orders: number } };
+  customer?: { email: string; name?: string; phone?: string; orderCount?: number };
   items: Array<{ productName: string; quantity: number }>;
   shipment?: { trackingNumber?: string };
 }
@@ -27,24 +27,35 @@ export function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
   const load = useCallback(() => {
     setLoading(true);
+    setError(null);
     const params = new URLSearchParams({ page: String(page), limit: String(LIMIT) });
     if (statusFilter) params.set('status', statusFilter);
 
     fetch(`/api/admin/orders?${params}`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then(r => r.json())
+      .then(async r => {
+        if (r.status === 401) {
+          localStorage.removeItem('adminToken');
+          navigate('/admin/login', { replace: true });
+          return { orders: [], total: 0 };
+        }
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error((data as { error?: string }).error ?? `Error ${r.status}`);
+        return data as { orders: Order[]; total: number };
+      })
       .then((data: { orders: Order[]; total: number }) => {
         setOrders(data.orders ?? []);
         setTotal(data.total ?? 0);
       })
-      .catch(() => {})
+      .catch((err) => setError(err instanceof Error ? err.message : 'No se pudieron cargar los pedidos'))
       .finally(() => setLoading(false));
-  }, [page, statusFilter]);
+  }, [navigate, page, statusFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -122,6 +133,8 @@ export function AdminOrdersPage() {
       {/* Tabla */}
       {loading ? (
         <div className="text-center text-zinc-600 py-16 text-sm">Cargando…</div>
+      ) : error ? (
+        <div className="text-center text-red-400 py-16 text-sm">{error}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center text-zinc-600 py-16 text-sm">Sin pedidos</div>
       ) : (
@@ -151,7 +164,7 @@ export function AdminOrdersPage() {
                         <div className="font-medium text-zinc-200">{order.customer.name || 'Sin nombre'}</div>
                         <div className="flex items-center gap-2 text-zinc-500">
                           <span>{order.customer.email}</span>
-                          {(order.customer._count?.orders ?? 0) > 1 && (
+                          {(order.customer.orderCount ?? 0) > 1 && (
                             <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-400">
                               Recurrente
                             </span>
