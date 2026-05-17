@@ -31,9 +31,9 @@ export function Footer() {
 
           {/* Brand */}
           <div>
-            <p style={{ fontFamily: FONT, fontWeight: 800, fontSize: "1rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#ffffff", margin: "0 0 1rem" }}>
+            <Link to="/" style={{ fontFamily: FONT, fontWeight: 800, fontSize: "1rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#ffffff", margin: "0 0 1rem", display: "inline-block", textDecoration: "none" }}>
               Sumo Reishi
-            </p>
+            </Link>
             <p style={{ fontFamily: FONT, fontSize: "0.75rem", lineHeight: 1.75, color: "rgba(255,255,255,0.35)", margin: "0 0 1.5rem", maxWidth: "240px" }}>
               Extracto de Ganoderma lucidum de cuerpo fructífero completo. Sin compromisos.
             </p>

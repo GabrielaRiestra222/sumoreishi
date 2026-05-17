@@ -7,7 +7,7 @@ const items = [
   },
   {
     title: "CIENCIA MODERNA",
-    text: "Cultivo controlado, extracción precisa y estandarización de compuestos bioactivos."
+    text: "Cultivo controlado, extracto concentrado 30:1 y estandarización de compuestos bioactivos."
   },
   {
     title: "PUREZA ABSOLUTA",

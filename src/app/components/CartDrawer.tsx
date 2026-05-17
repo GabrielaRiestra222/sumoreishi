@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "./CartContext";
+import { readStoredCustomerProfile } from "./AccountPage";
 
 const FONT = '"Helvetica Neue","Helvetica","Arial",sans-serif';
 const GOLD = "#c9a84c";
@@ -88,12 +89,14 @@ export function CartDrawer() {
     setIsCheckingOut(true);
     setCheckoutError(null);
     try {
+      const profile = readStoredCustomerProfile();
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
           ...(selectedRateId ? { shippingRateId: selectedRateId } : {}),
+          ...(profile?.email ? { customerEmail: profile.email } : {}),
         }),
       });
 
@@ -142,11 +145,11 @@ export function CartDrawer() {
               top: 0,
               right: 0,
               bottom: 0,
-              width: "min(480px, 100vw)",
+              width: "min(720px, 100vw)",
+              height: "100dvh",
               backgroundColor: "#0e0e0e",
               zIndex: 999,
-              display: "flex",
-              flexDirection: "column",
+              overflowY: "auto",
               borderLeft: "1px solid rgba(255,255,255,0.06)",
             }}
           >
@@ -203,10 +206,10 @@ export function CartDrawer() {
             </div>
 
             {/* ITEMS */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem 2rem" }}>
+            <div style={{ padding: "1.5rem 2rem" }}>
               {items.length === 0 ? (
                 <div style={{
-                  height: "100%",
+                  minHeight: "calc(100dvh - 150px)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
@@ -238,12 +241,13 @@ export function CartDrawer() {
                         paddingBottom: "1.5rem",
                         marginBottom: "1.5rem",
                         borderBottom: "1px solid rgba(255,255,255,0.05)",
+                        minWidth: 0,
                       }}
                     >
                       {/* Imagen placeholder */}
                       <div style={{
-                        width: "72px",
-                        height: "72px",
+                        width: "92px",
+                        height: "92px",
                         backgroundColor: "#1a1a1a",
                         border: "1px solid rgba(255,255,255,0.07)",
                         flexShrink: 0,
@@ -272,10 +276,19 @@ export function CartDrawer() {
                           fontFamily: FONT,
                           fontSize: "0.7rem",
                           color: "rgba(255,255,255,0.35)",
-                          margin: "0 0 0.85rem 0",
+                          margin: "0 0 0.3rem 0",
                           letterSpacing: "0.02em",
                         }}>
                           {item.format}
+                        </p>
+                        <p style={{
+                          fontFamily: FONT,
+                          fontSize: "0.62rem",
+                          color: GOLD,
+                          margin: "0 0 0.85rem 0",
+                          letterSpacing: "0.04em",
+                        }}>
+                          {item.quantity * item.packUnits} unidad{item.quantity * item.packUnits !== 1 ? "es" : ""} en esta línea
                         </p>
 
                         {/* Qty + precio */}

@@ -4,15 +4,15 @@ import { useState, useEffect } from "react";
 const steps = [
   {
     number: "01",
-    title: "Una cápsula\nal día",
-    body: "La consistencia es lo que transforma un gesto en resultado.",
-    detail: "500mg · Extracto 30:1",
+    title: "6 cápsulas\nal día",
+    body: "Tómalas de una vez por la mañana o repartidas entre mañana y tarde.",
+    detail: "3g diarios · 6 x 500mg",
   },
   {
     number: "02",
-    title: "Con\ncomida",
-    body: "Mañana o noche, lo que encaje en tu rutina diaria.",
-    detail: "Preferiblemente por la mañana",
+    title: "Antes de\ncomer",
+    body: "Preferiblemente 30 minutos antes de las comidas, con agua.",
+    detail: "Rutina mañana/tarde",
   },
   {
     number: "03",

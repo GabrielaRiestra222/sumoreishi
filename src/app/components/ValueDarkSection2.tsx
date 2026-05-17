@@ -8,7 +8,7 @@ const cards = [
   },
   {
     number: "02",
-    title: "Extracción íntegra",
+    title: "Extracto concentrado",
     body: "Conservamos el espectro completo de polisacáridos y triterpenos activos.",
   },
   {
@@ -76,7 +76,7 @@ export function ValueDarkSection2() {
               }}
             >
               El valor de un ingrediente no está en lo que promete,
-              sino en cómo se cultiva, se extrae y se respeta.
+              sino en cómo se cultiva, se concentra y se respeta.
             </p>
           </motion.div>
         </div>

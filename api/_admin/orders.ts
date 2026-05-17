@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       skip,
       take,
       include: {
-        customer: true,
+        customer: { include: { _count: { select: { orders: true } } } },
         items: { include: { product: true } },
         shipment: true,
       },

@@ -21,7 +21,7 @@ export function PurchaseSection2() {
         </div>
 
         {/* PRODUCT CARD */}
-        <div className="max-w-4xl bg-white text-black rounded-sm p-10 md:p-14">
+        <div className="max-w-5xl bg-white text-black rounded-sm p-10 md:p-14">
           <div className="grid md:grid-cols-2 gap-12 items-start">
 
             {/* INFO */}
@@ -32,7 +32,7 @@ export function PurchaseSection2() {
               </div>
               <ul className="space-y-4 text-sm text-black/70">
                 <li>• Cuerpo fructífero completo</li>
-                <li>• Extracción lenta y controlada</li>
+                <li>• Extracto concentrado 30:1</li>
                 <li>• Sin excipientes artificiales</li>
                 <li>• Cultivo responsable</li>
               </ul>

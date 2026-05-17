@@ -17,6 +17,7 @@ import { ConfirmacionPage } from "./components/ConfirmacionPage";
 import { NotFoundPage } from "./components/NotFoundPage";
 import { BlogPage } from "./components/BlogPage";
 import { BlogPostPage } from "./components/BlogPostPage";
+import { AccountPage } from "./components/AccountPage";
 
 // Admin
 import { AdminLoginPage } from "./admin/AdminLoginPage";
@@ -97,6 +98,7 @@ export default function App() {
             {/* Blog */}
             <Route path="/blog" element={<LegalLayout><BlogPage /></LegalLayout>} />
             <Route path="/blog/:slug" element={<LegalLayout><BlogPostPage /></LegalLayout>} />
+            <Route path="/cuenta" element={<LegalLayout><AccountPage /></LegalLayout>} />
 
             {/* Legal */}
             <Route path="/privacidad" element={<LegalLayout><PrivacidadPage /></LegalLayout>} />

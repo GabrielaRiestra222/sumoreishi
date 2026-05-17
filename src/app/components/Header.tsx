@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, ShoppingBag } from "lucide-react";
+import { Menu, X, ShoppingBag, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "./CartContext";
 
@@ -15,6 +15,7 @@ export function Header() {
     { label: "Origen", href: "#origin" },
     { label: "Blog Home", href: "#blog" },
     { label: "Blog", href: "/blog" },
+    { label: "Cuenta", href: "/cuenta" },
   ];
 
   return (
@@ -33,6 +34,14 @@ export function Header() {
           </span>
 
           <div className="flex items-center gap-5">
+            <a
+              href="/cuenta"
+              className="text-white flex items-center"
+              aria-label="Crear cuenta"
+            >
+              <User size={18} strokeWidth={1.5} />
+            </a>
+
             {/* Carrito */}
             <button
               onClick={openCart}

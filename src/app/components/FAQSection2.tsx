@@ -26,7 +26,7 @@ const faqs = [
   
   {
     q: "¿Cómo debo tomar el Sumo Reishi?",
-    a: "El Sumo Reishi está pensado para un uso diario y constante. Recomendamos tomarlo una vez al día, preferiblemente por la mañana o al mediodía, con agua o junto a una comida ligera. No es un estimulante y no genera picos de energía.Se recomienda tomar 6 cápsulas al día, de golpe por la mañana o dividiendo por la mañana y tarde. Preferiblemente 30min antes de las comidas. En caso de toma de niños, consúltanos."
+    a: "Se recomienda tomar 6 cápsulas al día, de una vez por la mañana o repartidas entre mañana y tarde. Preferiblemente 30 minutos antes de las comidas y con agua. En caso de toma en niños, consúltanos antes."
   },
   {
     q: "¿Qué pasa si un día olvido tomarlo?",

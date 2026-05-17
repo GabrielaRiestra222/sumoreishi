@@ -14,7 +14,7 @@ const ALL_STATUSES = ['', 'PENDING', 'PAID', 'PREPARING', 'SHIPPED', 'DELIVERED'
 
 interface Order {
   id: string; status: string; totalEurCents: number; createdAt: string;
-  customer?: { email: string; name?: string; phone?: string };
+  customer?: { email: string; name?: string; phone?: string; _count?: { orders: number } };
   items: Array<{ productName: string; quantity: number }>;
   shipment?: { trackingNumber?: string };
 }
@@ -149,7 +149,14 @@ export function AdminOrdersPage() {
                     {order.customer ? (
                       <div className="space-y-0.5">
                         <div className="font-medium text-zinc-200">{order.customer.name || 'Sin nombre'}</div>
-                        <div className="text-zinc-500">{order.customer.email}</div>
+                        <div className="flex items-center gap-2 text-zinc-500">
+                          <span>{order.customer.email}</span>
+                          {(order.customer._count?.orders ?? 0) > 1 && (
+                            <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-400">
+                              Recurrente
+                            </span>
+                          )}
+                        </div>
                         {order.customer.phone && <div className="text-zinc-500">{order.customer.phone}</div>}
                       </div>
                     ) : (

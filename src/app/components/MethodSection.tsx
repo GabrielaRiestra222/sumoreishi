@@ -16,9 +16,9 @@ const methodSteps = [
   },
   {
     icon: FlaskConical,
-    title: "Extracción dual estandarizada",
+    title: "Extracto 30:1 estandarizado",
     description:
-      "Proceso secuencial acuoso y alcohólico diseñado para preservar polisacáridos y triterpenos de forma consistente."
+      "Concentración definida para preservar polisacáridos y triterpenos de forma consistente, sin afirmar un método de extracción concreto."
   },
   {
     icon: Microscope,

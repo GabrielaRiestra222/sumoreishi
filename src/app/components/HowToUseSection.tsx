@@ -20,8 +20,9 @@ export function HowToUseSection() {
             Incorpora Sumoreishi a tu rutina diaria como un gesto consciente.
           </p>
           <p>
-            Tómalo por la mañana o antes de dormir, acompañado de agua,
-            sin prisas.
+            Toma 6 cápsulas al día con agua, de una vez por la mañana o
+            repartidas entre mañana y tarde, preferiblemente 30 minutos antes
+            de las comidas.
           </p>
         </div>
 

@@ -159,7 +159,8 @@ export function HeroSection() {
                 </motion.p>
 
                 {/* Título serif italic */}
-                <motion.h1
+                <motion.a
+                  href="/"
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.35, duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
@@ -172,10 +173,12 @@ export function HeroSection() {
                     letterSpacing: '-0.05em',
                     color: "#ffffff",
                     margin: 0,
+                    display: "inline-block",
+                    textDecoration: "none",
                   }}
                 >
                   SUMO<br />REISHI
-                </motion.h1>
+                </motion.a>
 
                 {/* Claim */}
                 <motion.p

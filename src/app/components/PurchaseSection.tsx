@@ -39,7 +39,7 @@ export function PurchaseSection() {
             {/* PRICE */}
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-[#111]/60">
-                60 cápsulas · 30 días
+                60 cápsulas · 10 días de uso
               </span>
               <span className="text-2xl font-semibold text-[#111]">
                 39 €

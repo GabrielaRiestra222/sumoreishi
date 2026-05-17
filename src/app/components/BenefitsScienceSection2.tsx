@@ -19,7 +19,7 @@ const concerns = [
 
 const comparison = [
   { label: "Materia prima", other: "Micelio industrial", sumo: "Cuerpo fructífero completo" },
-  { label: "Extracción", other: "Genérica · baja concentración", sumo: "Extracción lenta en agua" },
+  { label: "Concentración", other: "Genérica · baja concentración", sumo: "Extracto 30:1 estandarizado" },
   { label: "Transparencia", other: "Etiquetas opacas", sumo: "Trazabilidad total" },
   { label: "Concentración", other: "Sin especificar", sumo: "Extracto 30:1 · 500mg" },
   { label: "Efecto", other: "Estimulante", sumo: "Adaptógeno real" },

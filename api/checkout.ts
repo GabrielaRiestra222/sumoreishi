@@ -28,7 +28,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { items, shippingRateId } = req.body as { items: CartItem[]; shippingRateId?: string };
+  const { items, shippingRateId, customerEmail } = req.body as {
+    items: CartItem[];
+    shippingRateId?: string;
+    customerEmail?: string;
+  };
 
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "No items provided" });
@@ -129,6 +133,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       phone_number_collection: {
         enabled: true,
       },
+      ...(customerEmail && customerEmail.includes("@") ? { customer_email: customerEmail } : {}),
+      customer_creation: "always",
+      allow_promotion_codes: true,
       shipping_options: [
         {
           shipping_rate_data: {

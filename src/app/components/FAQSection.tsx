@@ -7,7 +7,7 @@ const faqs = [
   },
   {
     q: "¿Cómo se toma?",
-    a: "Se recomienda tomar una o dos cápsulas al día, preferiblemente con comida."
+    a: "Se recomienda tomar 6 cápsulas al día, preferiblemente 30 minutos antes de las comidas."
   },
   {
     q: "¿Es apto para uso diario?",

@@ -7,7 +7,7 @@ import productImage from "../../assets/producto.png";
 const features = [
   { icon: Leaf, text: "100% Ganoderma lucidum (cuerpo fructífero)" },
   { icon: Shield, text: "Producción certificada GMP. Análisis por lote." },
-  { icon: ShoppingBag, text: "60 cápsulas vegetales · 30 días" }
+  { icon: ShoppingBag, text: "60 cápsulas vegetales · 10 días de uso" }
 ];
 
 export function ProductSection() {

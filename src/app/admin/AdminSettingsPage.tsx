@@ -65,6 +65,23 @@ export function AdminSettingsPage() {
       </div>
 
       <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6 max-w-lg mt-4">
+        <h2 className="font-semibold mb-4 text-sm text-zinc-400 uppercase tracking-wider">Promociones</h2>
+        <div className="space-y-3 text-sm text-zinc-300">
+          <div className="flex justify-between gap-4 py-3 border-b border-zinc-800">
+            <span>Códigos promocionales</span>
+            <span className="font-semibold text-green-400">Activos en Stripe Checkout</span>
+          </div>
+          <div className="flex justify-between gap-4 py-3">
+            <span>Clientes recurrentes</span>
+            <span className="text-zinc-500 text-right">Marcados en Pedidos</span>
+          </div>
+        </div>
+        <p className="text-xs text-zinc-600 mt-4">
+          Crea cupones y códigos desde Stripe Dashboard. El checkout ya muestra el campo para introducirlos.
+        </p>
+      </div>
+
+      <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6 max-w-lg mt-4">
         <h2 className="font-semibold mb-4 text-sm text-zinc-400 uppercase tracking-wider">Variables de entorno</h2>
         <div className="space-y-2 text-xs font-mono">
           {['DATABASE_URL', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'RESEND_API_KEY', 'RESEND_FROM', 'ADMIN_PASSWORD', 'ADMIN_JWT_SECRET', 'ADMIN_EMAIL'].map(v => (
