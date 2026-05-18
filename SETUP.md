@@ -23,8 +23,11 @@ Añadir en Vercel → Settings → Environment Variables:
 | `STRIPE_WEBHOOK_SECRET` | Secret del webhook de Stripe (whsec_...) | Sí |
 | `ADMIN_PASSWORD` | Contraseña del panel /admin | Sí |
 | `ADMIN_JWT_SECRET` | String aleatorio ≥32 chars para firmar tokens | Sí |
-| `ADMIN_EMAIL` | Email que recibe notificaciones de nuevos pedidos | Sí |
+| `ADMIN_EMAIL` | Emails que reciben notificaciones internas, separados por comas | Sí |
 | `RESEND_API_KEY` | API key de Resend (re_...) | No* |
+| `RESEND_FROM` | Remitente verificado, ej. `Sumo Reishi <pedidos@sumoreishi.com>` | Sí para enviar a clientes |
+| `SITE_URL` | URL pública del sitio, ej. `https://sumoreishi.com` | Recomendado |
+| `EMAIL_HERO_IMAGE_URL` | Imagen hero para las plantillas HTML de email | No |
 
 *Sin RESEND_API_KEY los emails se omiten sin error. La tienda funciona igualmente.
 
@@ -138,13 +141,17 @@ Compatible con Excel (incluye BOM UTF-8).
 1. Crear cuenta en resend.com
 2. Verificar dominio: `sumoreishi.com`
 3. Crear API key → copiar a `RESEND_API_KEY`
-4. El remitente está configurado como `pedidos@sumoreishi.com` — asegúrate de que ese alias existe o cambia el valor en `src/services/email.ts`
+4. Configura `RESEND_FROM=Sumo Reishi <pedidos@sumoreishi.com>` o el remitente verificado que prefieras.
+5. Configura `ADMIN_EMAIL=gabriela.riestra.lucas@gmail.com,tsmeragdina@gmail.com` para que las notificaciones internas lleguen a ambas cuentas.
+
+Importante: si usas `onboarding@resend.dev`, Resend solo permite enviar al email de prueba de la cuenta. Para enviar a clientes y a varias direcciones internas hay que verificar `sumoreishi.com` en Resend y usar un remitente del dominio.
 
 Emails implementados:
 - **Confirmación al cliente** — tras `checkout.session.completed`
 - **Notificación interna** — mismo evento, al `ADMIN_EMAIL`
 - **Tracking** — cuando se añade `trackingNumber` en el panel
 - **Cancelación/reembolso** — stub preparado, llamar `sendOrderCancelledToCustomer()`
+- **Plantilla corporativa HTML** — cabecera Sumo Reishi, imagen hero pública (`/email-hero.png`), tipografía limpia y colores corporativos.
 
 ---
 
